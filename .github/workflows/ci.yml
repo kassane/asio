@@ -2,7 +2,7 @@ name: asio CI
 
 on:
   push:
-    branches: [ master, citest-* ]
+    branches: [ master, zig-pkg ]
 
 jobs:
   build:
@@ -389,6 +389,16 @@ jobs:
       run: |
         ./autogen.sh
         ./configure ${{ matrix.separate-compilation }} ${{ matrix.with-boost }}
+     - name: Install Zig
+      uses: goto-bus-stop/setup-zig@v2
+        with:
+          version: master
+    - name: Zig build test (MacOS)
+      if: startsWith(matrix.runs-on, 'macos')
+      run: zig build parallel_sort_cpp14 -Doptimize=ReleaseFast -DExamples
+    - name: Zig build test (Linux)
+      if: startsWith(matrix.runs-on, 'ubuntu')
+      run: zig build parallel_sort_cpp14 -Doptimize=ReleaseFast -DExamples -Dtarget=native-native-musl
     - name: Sanity check
       if: startsWith(matrix.build-type, 'sanity')
       working-directory: asio/src/tests
