@@ -24,3 +24,5 @@ test-driver
 *.zip
 /*.cpp
 /*.hpp
+/boost
+*zig-*/
