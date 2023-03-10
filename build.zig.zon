@@ -1,0 +1,12 @@
+.{
+    .name = "asio",
+    .version = "1.32.0",
+    .minimum_zig_version = "0.13.0",
+    .paths = .{
+        "asio/include",
+        "asio/src",
+        "build.zig",
+        "LICENSE",
+        "README.md",
+    },
+}
