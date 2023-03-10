@@ -1,0 +1,13 @@
+.{
+    .name = .asio,
+    .version = "1.34.0",
+    .minimum_zig_version = "0.14.0",
+    .fingerprint = 0x9d5b3554c6736d19,
+    .paths = .{
+        "asio/include",
+        "asio/src",
+        "build.zig",
+        "LICENSE",
+        "README.md",
+    },
+}
