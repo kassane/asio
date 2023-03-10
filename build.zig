@@ -22,7 +22,7 @@ pub fn build(b: *Builder) void {
         .target = target,
         .version = .{
             .major = 1,
-            .minor = 26,
+            .minor = 27,
             .patch = 0,
         },
         .optimize = optimize,
@@ -33,17 +33,17 @@ pub fn build(b: *Builder) void {
     libasio.strip = true;
     libasio.addIncludePath("asio/include");
     libasio.addCSourceFiles(switch (ssl) {
-        true => source ++ [_][]const u8{
+        true => &.{
             "asio/src/asio_ssl.cpp",
         },
-        else => source,
+        else => &.{
+            "asio/src/asio.cpp",
+        },
     }, cxxFlags);
 
     if (target.isWindows()) {
         // no pkg-config
         libasio.linkSystemLibraryName("ws2_32");
-        libasio.linkSystemLibraryName("rpcrt4");
-        libasio.linkSystemLibraryName("iphlpapi");
         if (ssl) {
             libasio.linkSystemLibraryName("crypto");
             libasio.linkSystemLibraryName("ssl");
@@ -104,7 +104,4 @@ const cxxFlags: []const []const u8 = &.{
     "-Wall",
     "-pedantic",
     "-fcoroutines-ts",
-};
-const source: []const []const u8 = &.{
-    "asio/src/asio.cpp",
 };
