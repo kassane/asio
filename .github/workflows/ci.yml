@@ -1,6 +1,12 @@
 name: Zig Build
 
-on: [push]
+on:
+  push:
+    branches: [ zig-pkg ]
+  pull_request:
+    branches: [ zig-pkg ]
+  schedule:
+    - cron: '13 8 * * 0'
 
 jobs:
   build:

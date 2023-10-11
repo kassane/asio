@@ -1,4 +1,4 @@
-//! Requires zig version: 0.11 or higher
+//! Requires zig version: 0.12 or higher
 //! build: zig build -Doptimize=ReleaseFast -DShared (or -DShared=true/false)
 
 const std = @import("std");
@@ -10,7 +10,7 @@ pub fn build(b: *std.Build) void {
 
     // Options
     const shared = b.option(bool, "Shared", "Build the Shared Library [default: false]") orelse false;
-    const ssl = b.option(bool, "Ssl", "Build Asio with OpenSSL support [default: false]") orelse false;
+    const ssl = b.option(bool, "SSL", "Build Asio with OpenSSL support [default: false]") orelse false;
     const tests = b.option(bool, "Tests", "Build tests [default: false]") orelse false;
 
     const libasio = if (!shared) b.addStaticLibrary(.{
@@ -34,14 +34,17 @@ pub fn build(b: *std.Build) void {
     else
         libasio.strip = true;
     libasio.addIncludePath(Path.relative("asio/include"));
-    libasio.addCSourceFiles(switch (ssl) {
-        true => &.{
-            "asio/src/asio_ssl.cpp",
+    libasio.addCSourceFiles(.{
+        .files = switch (ssl) {
+            true => &.{
+                "asio/src/asio_ssl.cpp",
+            },
+            else => &.{
+                "asio/src/asio.cpp",
+            },
         },
-        else => &.{
-            "asio/src/asio.cpp",
-        },
-    }, cxxFlags);
+        .flags = cxxFlags,
+    });
 
     if (target.isWindows()) {
         if (libasio.linkage == .dynamic) {
@@ -228,7 +231,7 @@ const BuildInfo = struct {
     path: []const u8,
 
     fn filename(self: BuildInfo) []const u8 {
-        var split = std.mem.split(u8, std.fs.path.basename(self.path), ".");
+        var split = std.mem.splitSequence(u8, std.fs.path.basename(self.path), ".");
         return split.first();
     }
 };
