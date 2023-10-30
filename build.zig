@@ -23,7 +23,7 @@ pub fn build(b: *std.Build) void {
         .version = .{
             .major = 1,
             .minor = 28,
-            .patch = 1,
+            .patch = 2,
         },
         .optimize = optimize,
     });

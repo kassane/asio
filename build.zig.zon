@@ -1,5 +1,6 @@
 .{
     .name = "libasio",
-    .version = "1.28.1",
+    .version = "1.28.2",
     .paths = .{""},
+    .minimum_zig_version = "0.12.0",
 }

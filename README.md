@@ -4,7 +4,7 @@
 
 ### How to use
 
-* Download [Zig v0.11 or higher](https://ziglang.org/download)
+* Download [Zig v0.12 or higher](https://ziglang.org/download)
 * Make on your project `build.zig` & `build.zig.zon` file
 
 e.g:
@@ -25,9 +25,12 @@ e.g:
 .{
     .name = "example",
     .version = "0.1.0",
+    .paths = .{""},
     .dependencies = .{
         .libasio = .{
             .url = "https://github.com/kassane/asio/archive/[tag/commit-hash].tar.gz",
+            // or
+            .url = "git+https://https://github.com/kassane/asio#commit-hash",
             .hash = "[multihash - sha256-2]",
         },
     },
