@@ -4,7 +4,7 @@
 
 ### How to use
 
-* Download [Zig v0.15.1 or higher](https://ziglang.org/download)
+* Download [Zig v0.16.0 or higher](https://ziglang.org/download)
 * Make on your project `build.zig` & `build.zig.zon` file
 
 e.g:

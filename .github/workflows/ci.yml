@@ -30,10 +30,12 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
       - uses: mlugg/setup-zig@v2
+        with:
+          version: master
       - name: Build Summary ${{ matrix.targets }}
         run: zig build -DTests --summary all -freference-trace -Dtarget=${{ matrix.targets }}
