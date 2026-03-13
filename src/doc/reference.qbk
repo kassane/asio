@@ -1,5 +1,5 @@
 [/
- / Copyright (c) 2003-2025 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+ / Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
  /
  / Distributed under the Boost Software License, Version 1.0. (See accompanying
  / file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -5423,7 +5423,7 @@ Traits type used to obtain the executor associated with an object.
 
   template<
       typename T,
-      typename ``[link asio.reference.Executor1 Executor]`` = system_executor>
+      typename ``[link asio.reference.Executor1 Executor]`` = inline_executor>
   struct associated_executor
 
 
@@ -6079,7 +6079,7 @@ Used to generically specialise associators for a type.
 [indexterm1 asio.indexterm.async_completion..async_completion]
 
 
-Helper template to deduce the handler type from a CompletionToken, capture a local copy of the handler, and then create an [link asio.reference.async_result `async_result`] for the handler. 
+(Legacy.) Helper template to deduce the handler type from a CompletionToken, capture a local copy of the handler, and then create an [link asio.reference.async_result `async_result`] for the handler. 
 
 
   template<
@@ -6248,7 +6248,9 @@ This template may be specialised for user-defined completion token types. The pr
       
 For backwards compatibility, the primary template implements member types and functions that are associated with legacy forms of the [link asio.reference.async_result `async_result`] trait. These are annotated as "Legacy" in the documentation below. User specialisations of this trait do not need to implement these in order to satisfy the [link asio.reference.asynchronous_operations.completion_tokens_and_handlers async_result requirements].
 
-In general, implementers of asynchronous operations should use the async\_initiate function rather than using the [link asio.reference.async_result `async_result`] trait directly. 
+In general, implementers of asynchronous operations should use the async\_initiate function rather than using the [link asio.reference.async_result `async_result`] trait directly.
+
+For a more detailed discussion of the role of [link asio.reference.async_result `async_result`] and async\_initiate, see the overview documentation for [link asio.overview.model.completion_tokens completion token]. 
 
 
 [heading Requirements]
@@ -7114,6 +7116,8 @@ If the completion handler does not have a customised associated immediate execut
 
 [indexterm1 asio.indexterm.async_initiate..async_initiate]
 
+Helper function for implementing an asynchronous operation's initiating function. 
+
 
   template<
       typename CompletionToken,
@@ -7125,6 +7129,34 @@ If the completion handler does not have a customised associated immediate execut
       type_identity_t< CompletionToken > & token,
       Args &&... args);
 
+
+The async\_initiate function wraps the [link asio.reference.async_result `async_result`] trait. It automatically performs the necessary decay and forward of the completion token, and also enables backwards compatibility with legacy completion token implementations.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[initiation][A function object that will be called to launch the asynchronous operation. It receives the concrete completion handler as its first argument, followed by any additional arguments passed to async\_initiate.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] provided by the user. This will be transformed into a concrete completion handler by the [link asio.reference.async_result `async_result`] trait.]]
+
+[[args][Additional arguments to be forwarded to the initiation function object.]]
+
+]
+
+
+[heading Return Value]
+      
+The return value is determined by the [link asio.reference.async_result `async_result`] specialisation for the completion token type. For callback-based tokens, returns `void`. For other tokens such as use\_future or use\_awaitable, returns the corresponding future or awaitable type.
+
+
+[heading Remarks]
+      
+Asynchronous operation implementations should use this function rather than directly using the [link asio.reference.async_result `async_result`] trait, or the legacy [link asio.reference.async_completion `async_completion`] helper template.
+
+For a more detailed discussion of the role of [link asio.reference.async_result `async_result`] and async\_initiate, see the overview documentation for [link asio.overview.model.completion_tokens completion token]. 
 
 [heading Requirements]
 
@@ -10426,7 +10458,9 @@ This template may be specialised for user-defined completion token types. The pr
       
 For backwards compatibility, the primary template implements member types and functions that are associated with legacy forms of the [link asio.reference.async_result `async_result`] trait. These are annotated as "Legacy" in the documentation below. User specialisations of this trait do not need to implement these in order to satisfy the [link asio.reference.asynchronous_operations.completion_tokens_and_handlers async_result requirements].
 
-In general, implementers of asynchronous operations should use the async\_initiate function rather than using the [link asio.reference.async_result `async_result`] trait directly. 
+In general, implementers of asynchronous operations should use the async\_initiate function rather than using the [link asio.reference.async_result `async_result`] trait directly.
+
+For a more detailed discussion of the role of [link asio.reference.async_result `async_result`] and async\_initiate, see the overview documentation for [link asio.overview.model.completion_tokens completion token]. 
 
 [heading Requirements]
 
@@ -23086,6 +23120,337 @@ The [link asio.reference.basic_file `basic_file`] class template provides functi
 
 [endsect]
 
+
+
+[endsect]
+
+[section:basic_inline_executor basic_inline_executor]
+
+[indexterm1 asio.indexterm.basic_inline_executor..basic_inline_executor]
+
+
+An executor that always executes the function object inline. 
+
+
+  template<
+      typename InlineExceptionHandling>
+  class basic_inline_executor
+
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.basic_inline_executor.basic_inline_executor [*basic_inline_executor]] [constructor]]
+    [Default constructor. ]
+  ]
+  
+  [
+    [[link asio.reference.basic_inline_executor.execute [*execute]]]
+    [Execution function. ]
+  ]
+  
+  [
+    [[link asio.reference.basic_inline_executor.query__static [*query]] [static]]
+    [Query the current value of the mapping property. 
+     [hr]
+     Query the current value of the inline_exception_handling property. 
+     [hr]
+     Query the current value of the blocking property. ]
+  ]
+  
+  [
+    [[link asio.reference.basic_inline_executor.require [*require]]]
+    [Obtain an executor with the inline_exception_handling.propagate property. 
+     [hr]
+     Obtain an executor with the inline_exception_handling.terminate property. ]
+  ]
+  
+]
+
+[heading Friends]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.basic_inline_executor.operator_not__eq_ [*operator!=]]]
+    [Compare two executors for inequality. ]
+  ]
+  
+  [
+    [[link asio.reference.basic_inline_executor.operator_eq__eq_ [*operator==]]]
+    [Compare two executors for equality. ]
+  ]
+  
+]
+
+[heading Requirements]
+
+['Header: ][^asio/inline_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[section:basic_inline_executor basic_inline_executor::basic_inline_executor]
+
+[indexterm2 asio.indexterm.basic_inline_executor.basic_inline_executor..basic_inline_executor..basic_inline_executor] 
+Default constructor. 
+
+
+  basic_inline_executor();
+
+
+
+[endsect]
+
+
+
+[section:execute basic_inline_executor::execute]
+
+[indexterm2 asio.indexterm.basic_inline_executor.execute..execute..basic_inline_executor] 
+Execution function. 
+
+
+  template<
+      typename Function>
+  void execute(
+      Function && f) const;
+
+
+
+[endsect]
+
+
+
+[section:operator_not__eq_ basic_inline_executor::operator!=]
+
+[indexterm2 asio.indexterm.basic_inline_executor.operator_not__eq_..operator!=..basic_inline_executor] 
+Compare two executors for inequality. 
+
+
+  bool operator!=(
+      const basic_inline_executor & ,
+      const basic_inline_executor & );
+
+
+Two inline executors are never considered unequal. 
+
+[heading Requirements]
+
+['Header: ][^asio/inline_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[endsect]
+
+
+
+[section:operator_eq__eq_ basic_inline_executor::operator==]
+
+[indexterm2 asio.indexterm.basic_inline_executor.operator_eq__eq_..operator==..basic_inline_executor] 
+Compare two executors for equality. 
+
+
+  bool operator==(
+      const basic_inline_executor & ,
+      const basic_inline_executor & );
+
+
+Two inline executors are always considered equal. 
+
+[heading Requirements]
+
+['Header: ][^asio/inline_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[endsect]
+
+
+[section:query__static basic_inline_executor::query]
+
+[indexterm2 asio.indexterm.basic_inline_executor.query__static..query..basic_inline_executor] 
+Query the current value of the `mapping` property. 
+
+
+  static constexpr execution::mapping_t ``[link asio.reference.basic_inline_executor.query__static.overload1 query]``(
+      execution::mapping_t );
+  ``  [''''&raquo;''' [link asio.reference.basic_inline_executor.query__static.overload1 more...]]``
+
+
+Query the current value of the `inline_exception_handling` property. 
+
+
+  static constexpr execution::inline_exception_handling_t ``[link asio.reference.basic_inline_executor.query__static.overload2 query]``(
+      execution::inline_exception_handling_t );
+  ``  [''''&raquo;''' [link asio.reference.basic_inline_executor.query__static.overload2 more...]]``
+
+
+Query the current value of the `blocking` property. 
+
+
+  static constexpr execution::blocking_t ``[link asio.reference.basic_inline_executor.query__static.overload3 query]``(
+      execution::blocking_t );
+  ``  [''''&raquo;''' [link asio.reference.basic_inline_executor.query__static.overload3 more...]]``
+
+
+[section:overload1 basic_inline_executor::query (1 of 3 overloads)]
+
+
+Query the current value of the `mapping` property. 
+
+
+  static constexpr execution::mapping_t query(
+      execution::mapping_t );
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  asio::inline_executor ex;
+  if (asio::query(ex, asio::execution::mapping)
+        == asio::execution::mapping.thread)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 basic_inline_executor::query (2 of 3 overloads)]
+
+
+Query the current value of the `inline_exception_handling` property. 
+
+
+  static constexpr execution::inline_exception_handling_t query(
+      execution::inline_exception_handling_t );
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  asio::inline_executor ex;
+  if (asio::query(ex,
+        asio::execution::inline_exception_handling)
+      == asio::execution::inline_exception_handling.propagate)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 basic_inline_executor::query (3 of 3 overloads)]
+
+
+Query the current value of the `blocking` property. 
+
+
+  static constexpr execution::blocking_t query(
+      execution::blocking_t );
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  asio::inline_executor ex;
+  if (asio::query(ex, asio::execution::blocking)
+      == asio::execution::blocking.always)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:require basic_inline_executor::require]
+
+[indexterm2 asio.indexterm.basic_inline_executor.require..require..basic_inline_executor] 
+Obtain an executor with the `inline_exception_handling.propagate` property. 
+
+
+  basic_inline_executor< execution::inline_exception_handling_t::propagate_t > ``[link asio.reference.basic_inline_executor.require.overload1 require]``(
+      execution::inline_exception_handling_t::propagate_t ) const;
+  ``  [''''&raquo;''' [link asio.reference.basic_inline_executor.require.overload1 more...]]``
+
+
+Obtain an executor with the `inline_exception_handling.terminate` property. 
+
+
+  basic_inline_executor< execution::inline_exception_handling_t::terminate_t > ``[link asio.reference.basic_inline_executor.require.overload2 require]``(
+      execution::inline_exception_handling_t::terminate_t ) const;
+  ``  [''''&raquo;''' [link asio.reference.basic_inline_executor.require.overload2 more...]]``
+
+
+[section:overload1 basic_inline_executor::require (1 of 2 overloads)]
+
+
+Obtain an executor with the `inline_exception_handling.propagate` property. 
+
+
+  basic_inline_executor< execution::inline_exception_handling_t::propagate_t > require(
+      execution::inline_exception_handling_t::propagate_t ) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.require `require`] customisation point.
+
+For example: 
+
+  asio::inline_executor ex1;
+  auto ex2 = asio::require(ex1,
+      asio::execution::inline_exception_handling.propagate); 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 basic_inline_executor::require (2 of 2 overloads)]
+
+
+Obtain an executor with the `inline_exception_handling.terminate` property. 
+
+
+  basic_inline_executor< execution::inline_exception_handling_t::terminate_t > require(
+      execution::inline_exception_handling_t::terminate_t ) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.require `require`] customisation point.
+
+For example: 
+
+  asio::inline_executor ex1;
+  auto ex2 = asio::require(ex1,
+      asio::execution::inline_exception_handling.terminate); 
+
+
+
+
+
+[endsect]
+
+
+[endsect]
 
 
 [endsect]
@@ -67794,6 +68159,8 @@ An executor that uses arbitrary threads.
     [[link asio.reference.basic_system_executor.query__static [*query]] [static]]
     [Query the current value of the mapping property. 
      [hr]
+     Query the current value of the inline_exception_handling property. 
+     [hr]
      Query the current value of the context property. 
      [hr]
      Query the current value of the blocking property. 
@@ -68203,31 +68570,39 @@ Query the current value of the `mapping` property.
   ``  [''''&raquo;''' [link asio.reference.basic_system_executor.query__static.overload1 more...]]``
 
 
+Query the current value of the `inline_exception_handling` property. 
+
+
+  static constexpr execution::inline_exception_handling_t ``[link asio.reference.basic_system_executor.query__static.overload2 query]``(
+      execution::inline_exception_handling_t );
+  ``  [''''&raquo;''' [link asio.reference.basic_system_executor.query__static.overload2 more...]]``
+
+
 Query the current value of the `context` property. 
 
 
-  static system_context & ``[link asio.reference.basic_system_executor.query__static.overload2 query]``(
+  static system_context & ``[link asio.reference.basic_system_executor.query__static.overload3 query]``(
       execution::context_t );
-  ``  [''''&raquo;''' [link asio.reference.basic_system_executor.query__static.overload2 more...]]``
+  ``  [''''&raquo;''' [link asio.reference.basic_system_executor.query__static.overload3 more...]]``
 
 
 Query the current value of the `blocking` property. 
 
 
-  static constexpr execution::blocking_t ``[link asio.reference.basic_system_executor.query__static.overload3 query]``(
+  static constexpr execution::blocking_t ``[link asio.reference.basic_system_executor.query__static.overload4 query]``(
       execution::blocking_t );
-  ``  [''''&raquo;''' [link asio.reference.basic_system_executor.query__static.overload3 more...]]``
+  ``  [''''&raquo;''' [link asio.reference.basic_system_executor.query__static.overload4 more...]]``
 
 
 Query the current value of the `relationship` property. 
 
 
-  static constexpr execution::relationship_t ``[link asio.reference.basic_system_executor.query__static.overload4 query]``(
+  static constexpr execution::relationship_t ``[link asio.reference.basic_system_executor.query__static.overload5 query]``(
       execution::relationship_t );
-  ``  [''''&raquo;''' [link asio.reference.basic_system_executor.query__static.overload4 more...]]``
+  ``  [''''&raquo;''' [link asio.reference.basic_system_executor.query__static.overload5 more...]]``
 
 
-[section:overload1 basic_system_executor::query (1 of 4 overloads)]
+[section:overload1 basic_system_executor::query (1 of 5 overloads)]
 
 
 Query the current value of the `mapping` property. 
@@ -68254,7 +68629,35 @@ For example:
 
 
 
-[section:overload2 basic_system_executor::query (2 of 4 overloads)]
+[section:overload2 basic_system_executor::query (2 of 5 overloads)]
+
+
+Query the current value of the `inline_exception_handling` property. 
+
+
+  static constexpr execution::inline_exception_handling_t query(
+      execution::inline_exception_handling_t );
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  asio::system_executor ex;
+  if (asio::query(ex,
+        asio::execution::inline_exception_handling)
+      == asio::execution::inline_exception_handling.thread)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 basic_system_executor::query (3 of 5 overloads)]
 
 
 Query the current value of the `context` property. 
@@ -68280,7 +68683,7 @@ For example:
 
 
 
-[section:overload3 basic_system_executor::query (3 of 4 overloads)]
+[section:overload4 basic_system_executor::query (4 of 5 overloads)]
 
 
 Query the current value of the `blocking` property. 
@@ -68307,7 +68710,7 @@ For example:
 
 
 
-[section:overload4 basic_system_executor::query (4 of 4 overloads)]
+[section:overload5 basic_system_executor::query (5 of 5 overloads)]
 
 
 Query the current value of the `relationship` property. 
@@ -84865,9 +85268,9 @@ If not otherwise specialised, the default completion token type is [link asio.re
 Submits a completion token or function object for execution. 
 
   template<
-      typename ``[link asio.reference.NullaryToken NullaryToken]``>
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = deferred_t>
   auto ``[link asio.reference.defer.overload1 defer]``(
-      NullaryToken && token);
+      NullaryToken && token = deferred_t());
   ``  [''''&raquo;''' [link asio.reference.defer.overload1 more...]]``
 
   template<
@@ -84888,6 +85291,62 @@ Submits a completion token or function object for execution.
       constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
   ``  [''''&raquo;''' [link asio.reference.defer.overload3 more...]]``
 
+Submits a function to be run on a specified target executor, and after completion submits the completion handler. 
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<Executor>>
+  auto ``[link asio.reference.defer.overload4 defer]``(
+      Function && function,
+      const Executor & ex,
+      NullaryToken && token = default_completion_token_t< Executor >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.defer.overload4 more...]]``
+
+Submits a function to be run on a specified target executor, and passes the result to a completion handler. 
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename CompletionToken = default_completion_token_t<Executor>>
+  auto ``[link asio.reference.defer.overload5 defer]``(
+      Function && function,
+      const Executor & ex,
+      CompletionToken && token = default_completion_token_t< Executor >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.defer.overload5 more...]]``
+
+Submits a function to be run on a specified execution context, and after completion submits the completion handler. 
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto ``[link asio.reference.defer.overload6 defer]``(
+      Function && function,
+      ExecutionContext & ctx,
+      NullaryToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.defer.overload6 more...]]``
+
+Submits a function to be run on a specified execution context, and passes the result to a completion handler. 
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename CompletionToken = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto ``[link asio.reference.defer.overload7 defer]``(
+      Function && function,
+      ExecutionContext & ctx,
+      CompletionToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.defer.overload7 more...]]``
+
 [heading Requirements]
 
 ['Header: ][^asio/defer.hpp]
@@ -84895,16 +85354,16 @@ Submits a completion token or function object for execution.
 ['Convenience header: ][^asio.hpp]
 
 
-[section:overload1 defer (1 of 3 overloads)]
+[section:overload1 defer (1 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
 
 
   template<
-      typename ``[link asio.reference.NullaryToken NullaryToken]``>
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = deferred_t>
   auto defer(
-      NullaryToken && token);
+      NullaryToken && token = deferred_t());
 
 
 This function submits an object for execution using the object's associated executor. The function object is queued for execution, and is never called from the current thread prior to returning from `defer()`.
@@ -84947,7 +85406,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated executor object `ex` of type `Ex` by performing 
 
-  auto ex = get_associated_executor(handler); 
+  auto ex = get_associated_executor(completion_handler); 
 
 
 
@@ -84955,7 +85414,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated allocator object `alloc` by performing 
 
-  auto alloc = get_associated_allocator(handler); 
+  auto alloc = get_associated_allocator(completion_handler); 
 
 
 
@@ -84999,7 +85458,7 @@ The function call operator of `Init:`
 
 
 
-[section:overload2 defer (2 of 3 overloads)]
+[section:overload2 defer (2 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
@@ -85061,7 +85520,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
 
-  auto ex1 = get_associated_executor(handler, ex); 
+  auto ex1 = get_associated_executor(completion_handler, ex); 
 
 
 
@@ -85069,7 +85528,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated allocator object `alloc` by performing 
 
-  auto alloc = get_associated_allocator(handler); 
+  auto alloc = get_associated_allocator(completion_handler); 
 
 
 
@@ -85094,7 +85553,7 @@ The function call operator of `Init:`
 
 
 
-* If `execution::is_executor<Ex>::value` is true, performs 
+* If `execution::is_executor<Executor>::value` is true, performs 
 
   prefer(
      require(ex, execution::blocking.never),
@@ -85106,7 +85565,7 @@ The function call operator of `Init:`
 
 
 
-* If `execution::is_executor<Ex>::value` is false, performs 
+* If `execution::is_executor<Executor>::value` is false, performs 
 
   ex.defer(std::move(f), alloc); 
 
@@ -85130,7 +85589,7 @@ The function call operator of `Init:`
 
 
 
-[section:overload3 defer (3 of 3 overloads)]
+[section:overload3 defer (3 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
@@ -85172,6 +85631,464 @@ Submits a completion token or function object for execution.
 
 
   void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 defer (4 of 7 overloads)]
+
+
+Submits a function to be run on a specified target executor, and after completion submits the completion handler. 
+
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<Executor>>
+  auto defer(
+      Function && function,
+      const Executor & ex,
+      NullaryToken && token = default_completion_token_t< Executor >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+
+
+This function submits a function object for execution on the specified executor. The function object is queued for execution, and is never called from the current thread prior to returning from `defer()`. After the submitted function completes, the completion handler is dispatched to run on its associated executor.
+
+The use of `defer()`, rather than [link asio.reference.post `post`], indicates the caller's preference that the executor defer the queueing of the function object. This may allow the executor to optimise queueing for cases when the function object represents a continuation of the current call context.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ex][The target executor.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+This function returns `async_initiate<NullaryToken, void()>(Init{ex}, token, forward<Function>(function))`, where `Init` is a function object type defined as:
+
+
+
+  class Init
+  {
+  public:
+    using executor_type = Executor;
+    explicit Init(const Executor& ex) : ex_(ex) {}
+    executor_type get_executor() const noexcept { return ex_; }
+    template <typename CompletionHandler>
+      void operator()(CompletionHandler&& completion_handler,
+        Function&& function) const;
+  private:
+    Executor ex_; // exposition only
+  }; 
+
+
+
+
+The function call operator of `Init:` 
+
+
+* Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
+
+  auto ex1 = get_associated_executor(completion_handler, ex); 
+
+
+
+
+
+* Obtains the handler's associated allocator object `alloc` by performing 
+
+  auto alloc = get_associated_allocator(completion_handler); 
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is true, constructs a function object wrapper `f` with a member `executor_` that is initialised with `prefer(ex1, execution::outstanding_work.tracked)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  prefer(executor_, execution::allocator(a)).execute(std::move(handler_));
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is false, constructs a function object wrapper `f` with a member `work_` that is initialised with `make_work_guard(ex1)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  work_.get_executor().dispatch(std::move(handler_), a);
+  work_.reset(); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is true, performs 
+
+  prefer(
+     require(ex, execution::blocking.never),
+     execution::relationship.fork,
+     execution::allocator(alloc)
+   ).execute(std::move(f)); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is false, performs 
+
+  ex.defer(std::move(f), alloc); 
+
+
+
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Example]
+  
+This `defer` overload may be used to submit long running work to a thread pool and, once complete, continue execution on an associated completion executor, such as a coroutine's associated executor: 
+
+  asio::awaitable<void> my_coroutine()
+  {
+     // ...
+
+     co_await asio::defer(
+         []{
+           perform_expensive_computation();
+         },
+         my_thread_pool);
+
+     // handle result on the coroutine's associated executor
+  } 
+
+
+
+
+
+[heading Completion Signature]
+  
+
+
+  void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload5 defer (5 of 7 overloads)]
+
+
+Submits a function to be run on a specified target executor, and passes the result to a completion handler. 
+
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename CompletionToken = default_completion_token_t<Executor>>
+  auto defer(
+      Function && function,
+      const Executor & ex,
+      CompletionToken && token = default_completion_token_t< Executor >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+
+
+This function submits a function object for execution on the specified executor. The function object is queued for execution, and is never called from the current thread prior to returning from `defer()`. After the submitted function completes, the completion handler is dispatched along with the function's result, to run on its associated executor.
+
+The use of `defer()`, rather than [link asio.reference.post `post`], indicates the caller's preference that the executor defer the queueing of the function object. This may allow the executor to optimise queueing for cases when the function object represents a continuation of the current call context.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ex][The target executor.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(decay_t<result_of_t<decay_t<Function>()>>); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+This function returns `async_initiate<CompletionToken, void()>(Init{ex}, token)`, where `Init` is a function object type defined as:
+
+
+
+  class Init
+  {
+  public:
+    using executor_type = Executor;
+    explicit Init(const Executor& ex) : ex_(ex) {}
+    executor_type get_executor() const noexcept { return ex_; }
+    template <typename CompletionHandler>
+      void operator()(CompletionHandler&& completion_handler,
+        Function&& function) const;
+  private:
+    Executor ex_; // exposition only
+  }; 
+
+
+
+
+The function call operator of `Init:` 
+
+
+* Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
+
+  auto ex1 = get_associated_executor(completion_handler, ex); 
+
+
+
+
+
+* Obtains the handler's associated allocator object `alloc` by performing 
+
+  auto alloc = get_associated_allocator(completion_handler); 
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is true, constructs a function object wrapper `f` with a member `executor_` that is initialised with `prefer(ex1, execution::outstanding_work.tracked)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  auto result = std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  prefer(executor_, execution::allocator(a)).execute(
+      std::bind(std::move(handler_), std::move(result)));
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is false, constructs a function object wrapper `f` with a member `work_` that is initialised with `make_work_guard(ex1)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  auto result = std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  work_.get_executor().dispatch(
+      std::bind(std::move(handler_), std::move(result)), a);
+  work_.reset(); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is true, performs 
+
+  prefer(
+     require(ex, execution::blocking.never),
+     execution::relationship.fork,
+     execution::allocator(alloc)
+   ).execute(std::move(f)); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is false, performs 
+
+  ex.defer(std::move(f), alloc); 
+
+
+
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Example]
+  
+This `defer` overload may be used to submit long running work to a thread pool and, once complete, continue execution on an associated completion executor, such as a coroutine's associated executor: 
+
+  asio::awaitable<void> my_coroutine()
+  {
+     // ...
+
+     int result = co_await asio::defer(
+         []{
+           return perform_expensive_computation();
+         },
+         my_thread_pool);
+
+     // handle result on the coroutine's associated executor
+  } 
+
+
+
+
+
+[heading Completion Signature]
+  
+
+
+  void(decay_t<result_of_t<decay_t<Function>()>>) 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload6 defer (6 of 7 overloads)]
+
+
+Submits a function to be run on a specified execution context, and after completion submits the completion handler. 
+
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto defer(
+      Function && function,
+      ExecutionContext & ctx,
+      NullaryToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ctx][An execution context, from which the target executor is obtained.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+`defer(forward<Function>(function), ctx.get_executor(), forward<NullaryToken>(token))`.
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Completion Signature]
+  
+
+
+  void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload7 defer (7 of 7 overloads)]
+
+
+Submits a function to be run on a specified execution context, and passes the result to a completion handler. 
+
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename CompletionToken = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto defer(
+      Function && function,
+      ExecutionContext & ctx,
+      CompletionToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ctx][An execution context, from which the target executor is obtained.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+`defer(forward<Function>(function), ctx.get_executor(), forward<CompletionToken>(token))`.
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Completion Signature]
+  
+
+
+  void(decay_t<result_of_t<decay_t<Function>()>>) 
 
 
 
@@ -86915,9 +87832,9 @@ A cancellation filter that disables cancellation.
 Submits a completion token or function object for execution. 
 
   template<
-      typename ``[link asio.reference.NullaryToken NullaryToken]``>
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = deferred_t>
   auto ``[link asio.reference.dispatch.overload1 dispatch]``(
-      NullaryToken && token);
+      NullaryToken && token = deferred_t());
   ``  [''''&raquo;''' [link asio.reference.dispatch.overload1 more...]]``
 
   template<
@@ -86938,6 +87855,62 @@ Submits a completion token or function object for execution.
       constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
   ``  [''''&raquo;''' [link asio.reference.dispatch.overload3 more...]]``
 
+Submits a function to be run on a specified target executor, and after completion submits the completion handler. 
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<Executor>>
+  auto ``[link asio.reference.dispatch.overload4 dispatch]``(
+      Function && function,
+      const Executor & ex,
+      NullaryToken && token = default_completion_token_t< Executor >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.dispatch.overload4 more...]]``
+
+Submits a function to be run on a specified target executor, and passes the result to a completion handler. 
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename CompletionToken = default_completion_token_t<Executor>>
+  auto ``[link asio.reference.dispatch.overload5 dispatch]``(
+      Function && function,
+      const Executor & ex,
+      CompletionToken && token = default_completion_token_t< Executor >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.dispatch.overload5 more...]]``
+
+Submits a function to be run on a specified execution context, and after completion submits the completion handler. 
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto ``[link asio.reference.dispatch.overload6 dispatch]``(
+      Function && function,
+      ExecutionContext & ctx,
+      NullaryToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.dispatch.overload6 more...]]``
+
+Submits a function to be run on a specified execution context, and passes the result to a completion handler. 
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename CompletionToken = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto ``[link asio.reference.dispatch.overload7 dispatch]``(
+      Function && function,
+      ExecutionContext & ctx,
+      CompletionToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.dispatch.overload7 more...]]``
+
 [heading Requirements]
 
 ['Header: ][^asio/dispatch.hpp]
@@ -86945,16 +87918,16 @@ Submits a completion token or function object for execution.
 ['Convenience header: ][^asio.hpp]
 
 
-[section:overload1 dispatch (1 of 3 overloads)]
+[section:overload1 dispatch (1 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
 
 
   template<
-      typename ``[link asio.reference.NullaryToken NullaryToken]``>
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = deferred_t>
   auto dispatch(
-      NullaryToken && token);
+      NullaryToken && token = deferred_t());
 
 
 This function submits an object for execution using the object's associated executor. The function object may be called from the current thread prior to returning from `dispatch()`. Otherwise, it is queued for execution.
@@ -86995,7 +87968,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated executor object `ex` of type `Ex` by performing 
 
-  auto ex = get_associated_executor(handler); 
+  auto ex = get_associated_executor(completion_handler); 
 
 
 
@@ -87003,7 +87976,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated allocator object `alloc` by performing 
 
-  auto alloc = get_associated_allocator(handler); 
+  auto alloc = get_associated_allocator(completion_handler); 
 
 
 
@@ -87044,7 +88017,7 @@ The function call operator of `Init:`
 
 
 
-[section:overload2 dispatch (2 of 3 overloads)]
+[section:overload2 dispatch (2 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
@@ -87104,7 +88077,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
 
-  auto ex1 = get_associated_executor(handler, ex); 
+  auto ex1 = get_associated_executor(completion_handler, ex); 
 
 
 
@@ -87112,7 +88085,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated allocator object `alloc` by performing 
 
-  auto alloc = get_associated_allocator(handler); 
+  auto alloc = get_associated_allocator(completion_handler); 
 
 
 
@@ -87137,7 +88110,7 @@ The function call operator of `Init:`
 
 
 
-* If `execution::is_executor<Ex>::value` is true, performs 
+* If `execution::is_executor<Executor>::value` is true, performs 
 
   prefer(ex, execution::allocator(alloc)).execute(std::move(f)); 
 
@@ -87145,7 +88118,7 @@ The function call operator of `Init:`
 
 
 
-* If `execution::is_executor<Ex>::value` is false, performs 
+* If `execution::is_executor<Executor>::value` is false, performs 
 
   ex.dispatch(std::move(f), alloc); 
 
@@ -87169,7 +88142,7 @@ The function call operator of `Init:`
 
 
 
-[section:overload3 dispatch (3 of 3 overloads)]
+[section:overload3 dispatch (3 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
@@ -87211,6 +88184,418 @@ Submits a completion token or function object for execution.
 
 
   void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 dispatch (4 of 7 overloads)]
+
+
+Submits a function to be run on a specified target executor, and after completion submits the completion handler. 
+
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<Executor>>
+  auto dispatch(
+      Function && function,
+      const Executor & ex,
+      NullaryToken && token = default_completion_token_t< Executor >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+
+
+This function submits a function object for execution using the specified executor. The function object may be called from the current thread prior to returning from `dispatch()`. Otherwise, it is queued for execution. After the submitted function completes, the completion handler is dispatched to run on its associated executor.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ex][The target executor.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+This function returns `async_initiate<NullaryToken, void()>(Init{ex}, token, forward<Function>(function))`, where `Init` is a function object type defined as:
+
+
+
+  class Init
+  {
+  public:
+    using executor_type = Executor;
+    explicit Init(const Executor& ex) : ex_(ex) {}
+    executor_type get_executor() const noexcept { return ex_; }
+    template <typename CompletionHandler>
+      void operator()(CompletionHandler&& completion_handler,
+        Function&& function) const;
+  private:
+    Executor ex_; // exposition only
+  }; 
+
+
+
+
+The function call operator of `Init:` 
+
+
+* Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
+
+  auto ex1 = get_associated_executor(completion_handler, ex); 
+
+
+
+
+
+* Obtains the handler's associated allocator object `alloc` by performing 
+
+  auto alloc = get_associated_allocator(completion_handler); 
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is true, constructs a function object wrapper `f` with a member `executor_` that is initialised with `prefer(ex1, execution::outstanding_work.tracked)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  prefer(executor_, execution::allocator(a)).execute(std::move(handler_));
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is false, constructs a function object wrapper `f` with a member `work_` that is initialised with `make_work_guard(ex1)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  work_.get_executor().dispatch(std::move(handler_), a);
+  work_.reset(); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is true, performs 
+
+  prefer(
+     require(ex, execution::blocking.never),
+     execution::relationship.fork,
+     execution::allocator(alloc)
+   ).execute(std::move(f)); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is false, performs 
+
+  ex.dispatch(std::move(f), alloc); 
+
+
+
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Completion Signature]
+  
+
+
+  void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload5 dispatch (5 of 7 overloads)]
+
+
+Submits a function to be run on a specified target executor, and passes the result to a completion handler. 
+
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename CompletionToken = default_completion_token_t<Executor>>
+  auto dispatch(
+      Function && function,
+      const Executor & ex,
+      CompletionToken && token = default_completion_token_t< Executor >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+
+
+This function submits a function object for execution using the specified executor. The function object may be called from the current thread prior to returning from `dispatch()`. Otherwise, it is queued for execution. After the submitted function completes, the completion handler is dispatched along with the function's result, to run on its associated executor.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ex][The target executor.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(decay_t<result_of_t<decay_t<Function>()>>); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+This function returns `async_initiate<CompletionToken, void()>(Init{ex}, token)`, where `Init` is a function object type defined as:
+
+
+
+  class Init
+  {
+  public:
+    using executor_type = Executor;
+    explicit Init(const Executor& ex) : ex_(ex) {}
+    executor_type get_executor() const noexcept { return ex_; }
+    template <typename CompletionHandler>
+      void operator()(CompletionHandler&& completion_handler,
+        Function&& function) const;
+  private:
+    Executor ex_; // exposition only
+  }; 
+
+
+
+
+The function call operator of `Init:` 
+
+
+* Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
+
+  auto ex1 = get_associated_executor(completion_handler, ex); 
+
+
+
+
+
+* Obtains the handler's associated allocator object `alloc` by performing 
+
+  auto alloc = get_associated_allocator(completion_handler); 
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is true, constructs a function object wrapper `f` with a member `executor_` that is initialised with `prefer(ex1, execution::outstanding_work.tracked)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  auto result = std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  prefer(executor_, execution::allocator(a)).execute(
+      std::bind(std::move(handler_), std::move(result)));
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is false, constructs a function object wrapper `f` with a member `work_` that is initialised with `make_work_guard(ex1)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  auto result = std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  work_.get_executor().dispatch(
+      std::bind(std::move(handler_), std::move(result)), a);
+  work_.reset(); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is true, performs 
+
+  prefer(
+     require(ex, execution::blocking.never),
+     execution::relationship.fork,
+     execution::allocator(alloc)
+   ).execute(std::move(f)); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is false, performs 
+
+  ex.dispatch(std::move(f), alloc); 
+
+
+
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Completion Signature]
+  
+
+
+  void(decay_t<result_of_t<decay_t<Function>()>>) 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload6 dispatch (6 of 7 overloads)]
+
+
+Submits a function to be run on a specified execution context, and after completion submits the completion handler. 
+
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto dispatch(
+      Function && function,
+      ExecutionContext & ctx,
+      NullaryToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ctx][An execution context, from which the target executor is obtained.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+`dispatch(forward<Function>(function), ctx.get_executor(), forward<NullaryToken>(token))`.
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Completion Signature]
+  
+
+
+  void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload7 dispatch (7 of 7 overloads)]
+
+
+Submits a function to be run on a specified execution context, and passes the result to a completion handler. 
+
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename CompletionToken = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto dispatch(
+      Function && function,
+      ExecutionContext & ctx,
+      CompletionToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ctx][An execution context, from which the target executor is obtained.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+`dispatch(forward<Function>(function), ctx.get_executor(), forward<CompletionToken>(token))`.
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Completion Signature]
+  
+
+
+  void(decay_t<result_of_t<decay_t<Function>()>>) 
 
 
 
@@ -92832,6 +94217,889 @@ The type returned by queries against an `any_executor`.
 ['Header: ][^asio/execution/context.hpp]
 
 ['Convenience header: ][^asio/execution.hpp]
+
+
+[endsect]
+
+
+
+[endsect]
+
+
+[section:execution__inline_exception_handling execution::inline_exception_handling]
+
+[indexterm1 asio.indexterm.execution__inline_exception_handling..execution::inline_exception_handling]
+
+A special value used for accessing the inline\_exception\_handling property. 
+
+
+  constexpr inline_exception_handling_t inline_exception_handling;
+
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[endsect]
+
+
+[section:execution__inline_exception_handling_t execution::inline_exception_handling_t]
+
+[indexterm1 asio.indexterm.execution__inline_exception_handling_t..execution::inline_exception_handling_t]
+
+
+A property to describe what guarantees an executor makes about the treatment of exceptions that are thrown by a submitted function, when that function is executed inline within `execute`. 
+
+
+  struct inline_exception_handling_t
+
+
+[heading Types]
+[table
+  [[Name][Description]]
+
+  [
+
+    [[link asio.reference.execution__inline_exception_handling_t__capture_t [*capture_t]]]
+    [A sub-property that indicates that invocation of an executor's execution function will capture any exceptions that are thrown by the submitted function object, if that function object is executed inline. Captured exceptions are forwarded to an executor-defined handling mechanism. ]
+  
+  ]
+
+  [
+
+    [[link asio.reference.execution__inline_exception_handling_t__propagate_t [*propagate_t]]]
+    [A sub-property that indicates that invocation of an executor's execution function will propagate any exceptions that are thrown by the submitted function object, if that function object is executed inline. ]
+  
+  ]
+
+  [
+
+    [[link asio.reference.execution__inline_exception_handling_t__terminate_t [*terminate_t]]]
+    [A sub-property that indicates that invocation of an executor's execution function will terminate the program if any exceptions that are thrown by the submitted function object, if that function object is executed inline. ]
+  
+  ]
+
+  [
+
+    [[link asio.reference.execution__inline_exception_handling_t.polymorphic_query_result_type [*polymorphic_query_result_type]]]
+    [The type returned by queries against an any_executor. ]
+  
+  ]
+
+]
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t [*inline_exception_handling_t]] [constructor]]
+    [Default constructor. 
+     [hr]
+     Construct from a sub-property value. ]
+  ]
+  
+]
+
+[heading Data Members]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.capture [*capture]] [static]]
+    [A special value used for accessing the inline_exception_handling_t::capture_t property. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.is_applicable_property_v [*is_applicable_property_v]] [static]]
+    [The inline_exception_handling property applies to executors. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.is_preferable [*is_preferable]] [static]]
+    [The top-level inline_exception_handling property cannot be preferred. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.is_requirable [*is_requirable]] [static]]
+    [The top-level inline_exception_handling property cannot be required. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.propagate [*propagate]] [static]]
+    [A special value used for accessing the inline_exception_handling_t::propagate_t property. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.terminate [*terminate]] [static]]
+    [A special value used for accessing the inline_exception_handling_t::terminate_t property. ]
+  ]
+
+]
+
+[heading Friends]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.operator_not__eq_ [*operator!=]]]
+    [Compare property values for inequality. ]
+  ]
+  
+  [
+    [[link asio.reference.execution__inline_exception_handling_t.operator_eq__eq_ [*operator==]]]
+    [Compare property values for equality. ]
+  ]
+  
+]
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[section:capture execution::inline_exception_handling_t::capture]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.capture..capture..execution::inline_exception_handling_t] 
+A special value used for accessing the [link asio.reference.execution__inline_exception_handling_t__capture_t `execution::inline_exception_handling_t::capture_t`] property. 
+
+
+  static constexpr capture_t capture;
+
+
+
+[endsect]
+
+
+[section:inline_exception_handling_t execution::inline_exception_handling_t::inline_exception_handling_t]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.inline_exception_handling_t..inline_exception_handling_t..execution::inline_exception_handling_t] 
+Default constructor. 
+
+
+  constexpr ``[link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t.overload1 inline_exception_handling_t]``();
+  ``  [''''&raquo;''' [link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t.overload1 more...]]``
+
+
+Construct from a sub-property value. 
+
+
+  constexpr ``[link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t.overload2 inline_exception_handling_t]``(
+      propagate_t );
+  ``  [''''&raquo;''' [link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t.overload2 more...]]``
+
+  constexpr ``[link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t.overload3 inline_exception_handling_t]``(
+      capture_t );
+  ``  [''''&raquo;''' [link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t.overload3 more...]]``
+
+  constexpr ``[link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t.overload4 inline_exception_handling_t]``(
+      terminate_t );
+  ``  [''''&raquo;''' [link asio.reference.execution__inline_exception_handling_t.inline_exception_handling_t.overload4 more...]]``
+
+
+[section:overload1 execution::inline_exception_handling_t::inline_exception_handling_t (1 of 4 overloads)]
+
+
+Default constructor. 
+
+
+  constexpr inline_exception_handling_t();
+
+
+
+[endsect]
+
+
+
+[section:overload2 execution::inline_exception_handling_t::inline_exception_handling_t (2 of 4 overloads)]
+
+
+Construct from a sub-property value. 
+
+
+  constexpr inline_exception_handling_t(
+      propagate_t );
+
+
+
+[endsect]
+
+
+
+[section:overload3 execution::inline_exception_handling_t::inline_exception_handling_t (3 of 4 overloads)]
+
+
+Construct from a sub-property value. 
+
+
+  constexpr inline_exception_handling_t(
+      capture_t );
+
+
+
+[endsect]
+
+
+
+[section:overload4 execution::inline_exception_handling_t::inline_exception_handling_t (4 of 4 overloads)]
+
+
+Construct from a sub-property value. 
+
+
+  constexpr inline_exception_handling_t(
+      terminate_t );
+
+
+
+[endsect]
+
+
+[endsect]
+
+
+[section:is_applicable_property_v execution::inline_exception_handling_t::is_applicable_property_v]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.is_applicable_property_v..is_applicable_property_v..execution::inline_exception_handling_t] 
+The inline\_exception\_handling property applies to executors. 
+
+
+  template <typename T>
+  static constexpr bool is_applicable_property_v = is_executor_v<T>;
+
+
+
+[endsect]
+
+
+
+[section:is_preferable execution::inline_exception_handling_t::is_preferable]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.is_preferable..is_preferable..execution::inline_exception_handling_t] 
+The top-level inline\_exception\_handling property cannot be preferred. 
+
+
+  static constexpr bool is_preferable = false;
+
+
+
+[endsect]
+
+
+
+[section:is_requirable execution::inline_exception_handling_t::is_requirable]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.is_requirable..is_requirable..execution::inline_exception_handling_t] 
+The top-level inline\_exception\_handling property cannot be required. 
+
+
+  static constexpr bool is_requirable = false;
+
+
+
+[endsect]
+
+
+
+[section:operator_not__eq_ execution::inline_exception_handling_t::operator!=]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.operator_not__eq_..operator!=..execution::inline_exception_handling_t] 
+Compare property values for inequality. 
+
+
+  constexpr bool operator!=(
+      const inline_exception_handling_t & a,
+      const inline_exception_handling_t & b);
+
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[endsect]
+
+
+
+[section:operator_eq__eq_ execution::inline_exception_handling_t::operator==]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.operator_eq__eq_..operator==..execution::inline_exception_handling_t] 
+Compare property values for equality. 
+
+
+  constexpr bool operator==(
+      const inline_exception_handling_t & a,
+      const inline_exception_handling_t & b);
+
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[endsect]
+
+
+
+[section:polymorphic_query_result_type execution::inline_exception_handling_t::polymorphic_query_result_type]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.polymorphic_query_result_type..polymorphic_query_result_type..execution::inline_exception_handling_t] 
+The type returned by queries against an `any_executor`. 
+
+
+  typedef inline_exception_handling_t polymorphic_query_result_type;
+
+
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[endsect]
+
+
+
+[section:propagate execution::inline_exception_handling_t::propagate]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.propagate..propagate..execution::inline_exception_handling_t] 
+A special value used for accessing the [link asio.reference.execution__inline_exception_handling_t__propagate_t `execution::inline_exception_handling_t::propagate_t`] property. 
+
+
+  static constexpr propagate_t propagate;
+
+
+
+[endsect]
+
+
+
+[section:terminate execution::inline_exception_handling_t::terminate]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t.terminate..terminate..execution::inline_exception_handling_t] 
+A special value used for accessing the [link asio.reference.execution__inline_exception_handling_t__terminate_t `execution::inline_exception_handling_t::terminate_t`] property. 
+
+
+  static constexpr terminate_t terminate;
+
+
+
+[endsect]
+
+
+
+[endsect]
+
+[section:execution__inline_exception_handling_t__capture_t execution::inline_exception_handling_t::capture_t]
+
+[indexterm1 asio.indexterm.execution__inline_exception_handling_t__capture_t..execution::inline_exception_handling_t::capture_t]
+
+
+A sub-property that indicates that invocation of an executor's execution function will capture any exceptions that are thrown by the submitted function object, if that function object is executed inline. Captured exceptions are forwarded to an executor-defined handling mechanism. 
+
+
+  struct capture_t
+
+
+[heading Types]
+[table
+  [[Name][Description]]
+
+  [
+
+    [[link asio.reference.execution__inline_exception_handling_t__capture_t.polymorphic_query_result_type [*polymorphic_query_result_type]]]
+    [The type returned by queries against an any_executor. ]
+  
+  ]
+
+]
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__capture_t.capture_t [*capture_t]] [constructor]]
+    [Default constructor. ]
+  ]
+  
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__capture_t.value [*value]] [static]]
+    [Get the value associated with a property object. ]
+  ]
+  
+]
+
+[heading Data Members]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__capture_t.is_applicable_property_v [*is_applicable_property_v]] [static]]
+    [The inline_exception_handling_t::capture_t property applies to executors. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__capture_t.is_preferable [*is_preferable]] [static]]
+    [The inline_exception_handling_t::capture_t property can be preferred. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__capture_t.is_requirable [*is_requirable]] [static]]
+    [The inline_exception_handling_t::capture_t property can be required. ]
+  ]
+
+]
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[section:capture_t execution::inline_exception_handling_t::capture_t::capture_t]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__capture_t.capture_t..capture_t..execution::inline_exception_handling_t::capture_t] 
+Default constructor. 
+
+
+  constexpr capture_t();
+
+
+
+[endsect]
+
+
+
+[section:is_applicable_property_v execution::inline_exception_handling_t::capture_t::is_applicable_property_v]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__capture_t.is_applicable_property_v..is_applicable_property_v..execution::inline_exception_handling_t::capture_t] 
+The [link asio.reference.execution__inline_exception_handling_t__capture_t `execution::inline_exception_handling_t::capture_t`] property applies to executors. 
+
+
+  template <typename T>
+  static constexpr bool is_applicable_property_v = is_executor_v<T>;
+
+
+
+[endsect]
+
+
+
+[section:is_preferable execution::inline_exception_handling_t::capture_t::is_preferable]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__capture_t.is_preferable..is_preferable..execution::inline_exception_handling_t::capture_t] 
+The [link asio.reference.execution__inline_exception_handling_t__capture_t `execution::inline_exception_handling_t::capture_t`] property can be preferred. 
+
+
+  static constexpr bool is_preferable = false;
+
+
+
+[endsect]
+
+
+
+[section:is_requirable execution::inline_exception_handling_t::capture_t::is_requirable]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__capture_t.is_requirable..is_requirable..execution::inline_exception_handling_t::capture_t] 
+The [link asio.reference.execution__inline_exception_handling_t__capture_t `execution::inline_exception_handling_t::capture_t`] property can be required. 
+
+
+  static constexpr bool is_requirable = true;
+
+
+
+[endsect]
+
+
+
+[section:polymorphic_query_result_type execution::inline_exception_handling_t::capture_t::polymorphic_query_result_type]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__capture_t.polymorphic_query_result_type..polymorphic_query_result_type..execution::inline_exception_handling_t::capture_t] 
+The type returned by queries against an `any_executor`. 
+
+
+  typedef inline_exception_handling_t polymorphic_query_result_type;
+
+
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[endsect]
+
+
+
+[section:value execution::inline_exception_handling_t::capture_t::value]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__capture_t.value..value..execution::inline_exception_handling_t::capture_t] 
+Get the value associated with a property object. 
+
+
+  static constexpr inline_exception_handling_t value();
+
+
+
+[heading Return Value]
+      
+`capture_t()`; 
+
+
+
+
+[endsect]
+
+
+
+[endsect]
+
+[section:execution__inline_exception_handling_t__propagate_t execution::inline_exception_handling_t::propagate_t]
+
+[indexterm1 asio.indexterm.execution__inline_exception_handling_t__propagate_t..execution::inline_exception_handling_t::propagate_t]
+
+
+A sub-property that indicates that invocation of an executor's execution function will propagate any exceptions that are thrown by the submitted function object, if that function object is executed inline. 
+
+
+  struct propagate_t
+
+
+[heading Types]
+[table
+  [[Name][Description]]
+
+  [
+
+    [[link asio.reference.execution__inline_exception_handling_t__propagate_t.polymorphic_query_result_type [*polymorphic_query_result_type]]]
+    [The type returned by queries against an any_executor. ]
+  
+  ]
+
+]
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__propagate_t.propagate_t [*propagate_t]] [constructor]]
+    [Default constructor. ]
+  ]
+  
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__propagate_t.value [*value]] [static]]
+    [Get the value associated with a property object. ]
+  ]
+  
+]
+
+[heading Data Members]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__propagate_t.is_applicable_property_v [*is_applicable_property_v]] [static]]
+    [The inline_exception_handling_t::propagate_t property applies to executors. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__propagate_t.is_preferable [*is_preferable]] [static]]
+    [The inline_exception_handling_t::propagate_t property can be preferred. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__propagate_t.is_requirable [*is_requirable]] [static]]
+    [The inline_exception_handling_t::propagate_t property can be required. ]
+  ]
+
+]
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[section:is_applicable_property_v execution::inline_exception_handling_t::propagate_t::is_applicable_property_v]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__propagate_t.is_applicable_property_v..is_applicable_property_v..execution::inline_exception_handling_t::propagate_t] 
+The [link asio.reference.execution__inline_exception_handling_t__propagate_t `execution::inline_exception_handling_t::propagate_t`] property applies to executors. 
+
+
+  template <typename T>
+  static constexpr bool is_applicable_property_v = is_executor_v<T>;
+
+
+
+[endsect]
+
+
+
+[section:is_preferable execution::inline_exception_handling_t::propagate_t::is_preferable]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__propagate_t.is_preferable..is_preferable..execution::inline_exception_handling_t::propagate_t] 
+The [link asio.reference.execution__inline_exception_handling_t__propagate_t `execution::inline_exception_handling_t::propagate_t`] property can be preferred. 
+
+
+  static constexpr bool is_preferable = true;
+
+
+
+[endsect]
+
+
+
+[section:is_requirable execution::inline_exception_handling_t::propagate_t::is_requirable]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__propagate_t.is_requirable..is_requirable..execution::inline_exception_handling_t::propagate_t] 
+The [link asio.reference.execution__inline_exception_handling_t__propagate_t `execution::inline_exception_handling_t::propagate_t`] property can be required. 
+
+
+  static constexpr bool is_requirable = true;
+
+
+
+[endsect]
+
+
+
+[section:polymorphic_query_result_type execution::inline_exception_handling_t::propagate_t::polymorphic_query_result_type]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__propagate_t.polymorphic_query_result_type..polymorphic_query_result_type..execution::inline_exception_handling_t::propagate_t] 
+The type returned by queries against an `any_executor`. 
+
+
+  typedef inline_exception_handling_t polymorphic_query_result_type;
+
+
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[endsect]
+
+
+
+[section:propagate_t execution::inline_exception_handling_t::propagate_t::propagate_t]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__propagate_t.propagate_t..propagate_t..execution::inline_exception_handling_t::propagate_t] 
+Default constructor. 
+
+
+  constexpr propagate_t();
+
+
+
+[endsect]
+
+
+
+[section:value execution::inline_exception_handling_t::propagate_t::value]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__propagate_t.value..value..execution::inline_exception_handling_t::propagate_t] 
+Get the value associated with a property object. 
+
+
+  static constexpr inline_exception_handling_t value();
+
+
+
+[heading Return Value]
+      
+`propagate_t()`; 
+
+
+
+
+[endsect]
+
+
+
+[endsect]
+
+[section:execution__inline_exception_handling_t__terminate_t execution::inline_exception_handling_t::terminate_t]
+
+[indexterm1 asio.indexterm.execution__inline_exception_handling_t__terminate_t..execution::inline_exception_handling_t::terminate_t]
+
+
+A sub-property that indicates that invocation of an executor's execution function will terminate the program if any exceptions that are thrown by the submitted function object, if that function object is executed inline. 
+
+
+  struct terminate_t
+
+
+[heading Types]
+[table
+  [[Name][Description]]
+
+  [
+
+    [[link asio.reference.execution__inline_exception_handling_t__terminate_t.polymorphic_query_result_type [*polymorphic_query_result_type]]]
+    [The type returned by queries against an any_executor. ]
+  
+  ]
+
+]
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__terminate_t.terminate_t [*terminate_t]] [constructor]]
+    [Default constructor. ]
+  ]
+  
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__terminate_t.value [*value]] [static]]
+    [Get the value associated with a property object. ]
+  ]
+  
+]
+
+[heading Data Members]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__terminate_t.is_applicable_property_v [*is_applicable_property_v]] [static]]
+    [The inline_exception_handling_t::terminate_t property applies to executors. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__terminate_t.is_preferable [*is_preferable]] [static]]
+    [The inline_exception_handling_t::terminate_t property can be preferred. ]
+  ]
+
+  [
+    [[link asio.reference.execution__inline_exception_handling_t__terminate_t.is_requirable [*is_requirable]] [static]]
+    [The inline_exception_handling_t::terminate_t property can be required. ]
+  ]
+
+]
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[section:is_applicable_property_v execution::inline_exception_handling_t::terminate_t::is_applicable_property_v]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__terminate_t.is_applicable_property_v..is_applicable_property_v..execution::inline_exception_handling_t::terminate_t] 
+The [link asio.reference.execution__inline_exception_handling_t__terminate_t `execution::inline_exception_handling_t::terminate_t`] property applies to executors. 
+
+
+  template <typename T>
+  static constexpr bool is_applicable_property_v = is_executor_v<T>;
+
+
+
+[endsect]
+
+
+
+[section:is_preferable execution::inline_exception_handling_t::terminate_t::is_preferable]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__terminate_t.is_preferable..is_preferable..execution::inline_exception_handling_t::terminate_t] 
+The [link asio.reference.execution__inline_exception_handling_t__terminate_t `execution::inline_exception_handling_t::terminate_t`] property can be preferred. 
+
+
+  static constexpr bool is_preferable = true;
+
+
+
+[endsect]
+
+
+
+[section:is_requirable execution::inline_exception_handling_t::terminate_t::is_requirable]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__terminate_t.is_requirable..is_requirable..execution::inline_exception_handling_t::terminate_t] 
+The [link asio.reference.execution__inline_exception_handling_t__terminate_t `execution::inline_exception_handling_t::terminate_t`] property can be required. 
+
+
+  static constexpr bool is_requirable = true;
+
+
+
+[endsect]
+
+
+
+[section:polymorphic_query_result_type execution::inline_exception_handling_t::terminate_t::polymorphic_query_result_type]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__terminate_t.polymorphic_query_result_type..polymorphic_query_result_type..execution::inline_exception_handling_t::terminate_t] 
+The type returned by queries against an `any_executor`. 
+
+
+  typedef inline_exception_handling_t polymorphic_query_result_type;
+
+
+
+[heading Requirements]
+
+['Header: ][^asio/execution/inline_exception_handling.hpp]
+
+['Convenience header: ][^asio/execution.hpp]
+
+
+[endsect]
+
+
+
+[section:terminate_t execution::inline_exception_handling_t::terminate_t::terminate_t]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__terminate_t.terminate_t..terminate_t..execution::inline_exception_handling_t::terminate_t] 
+Default constructor. 
+
+
+  constexpr terminate_t();
+
+
+
+[endsect]
+
+
+
+[section:value execution::inline_exception_handling_t::terminate_t::value]
+
+[indexterm2 asio.indexterm.execution__inline_exception_handling_t__terminate_t.value..value..execution::inline_exception_handling_t::terminate_t] 
+Get the value associated with a property object. 
+
+
+  static constexpr inline_exception_handling_t value();
+
+
+
+[heading Return Value]
+      
+`terminate_t()`; 
+
+
 
 
 [endsect]
@@ -104599,6 +106867,16 @@ Create a group of operations that may be launched in parallel.
 
 ]
 
+
+[heading Exceptions]
+    
+
+[variablelist
+  
+[[std::logic_error][Thrown if the range is empty.]]
+
+]
+
 For example: 
 
   using op_type =
@@ -104658,6 +106936,16 @@ Create a group of operations that may be launched in parallel.
 [[allocator][Specifies the allocator to be used with the result vectors.]]
 
 [[range][A range containing the operations to be launched.]]
+
+]
+
+
+[heading Exceptions]
+    
+
+[variablelist
+  
+[[std::logic_error][Thrown if the range is empty.]]
 
 ]
 
@@ -105351,6 +107639,18 @@ Constructor.
   ranged_parallel_group(
       Range range,
       const Allocator & allocator = Allocator());
+
+
+
+[heading Exceptions]
+    
+
+[variablelist
+  
+[[std::logic_error][Thrown if the range is empty. ]]
+
+]
+
 
 
 
@@ -112361,6 +114661,1270 @@ Destructor.
 
 [endsect]
 
+
+[section:inline_executor inline_executor]
+
+[indexterm1 asio.indexterm.inline_executor..inline_executor]
+
+An executor that always executes the function object inline. 
+
+
+  typedef basic_inline_executor< execution::inline_exception_handling_t::propagate_t > inline_executor;
+
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.basic_inline_executor.basic_inline_executor [*basic_inline_executor]] [constructor]]
+    [Default constructor. ]
+  ]
+  
+  [
+    [[link asio.reference.basic_inline_executor.execute [*execute]]]
+    [Execution function. ]
+  ]
+  
+  [
+    [[link asio.reference.basic_inline_executor.query__static [*query]] [static]]
+    [Query the current value of the mapping property. 
+     [hr]
+     Query the current value of the inline_exception_handling property. 
+     [hr]
+     Query the current value of the blocking property. ]
+  ]
+  
+  [
+    [[link asio.reference.basic_inline_executor.require [*require]]]
+    [Obtain an executor with the inline_exception_handling.propagate property. 
+     [hr]
+     Obtain an executor with the inline_exception_handling.terminate property. ]
+  ]
+  
+]
+
+[heading Friends]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.basic_inline_executor.operator_not__eq_ [*operator!=]]]
+    [Compare two executors for inequality. ]
+  ]
+  
+  [
+    [[link asio.reference.basic_inline_executor.operator_eq__eq_ [*operator==]]]
+    [Compare two executors for equality. ]
+  ]
+  
+]
+
+
+[heading Requirements]
+
+['Header: ][^asio/inline_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[endsect]
+
+
+[section:inline_or inline_or]
+
+[indexterm1 asio.indexterm.inline_or..inline_or]
+
+The [link asio.reference.inline_or `inline_or`] function creates an [link asio.reference.inline_or_executor `inline_or_executor`] object for an executor or execution context. 
+
+
+Create an [link asio.reference.inline_or_executor `inline_or_executor`] object for an executor. 
+
+  template<
+      typename ``[link asio.reference.Executor1 Executor]``>
+  inline_or_executor< Executor > ``[link asio.reference.inline_or.overload1 inline_or]``(
+      const Executor & ex,
+      constraint_t< is_executor< Executor >::value||execution::is_executor< Executor >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.inline_or.overload1 more...]]``
+
+Create an [link asio.reference.inline_or_executor `inline_or_executor`] object for an execution context. 
+
+  template<
+      typename ExecutionContext>
+  inline_or_executor< typename ExecutionContext::executor_type > ``[link asio.reference.inline_or.overload2 inline_or]``(
+      ExecutionContext & ctx,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.inline_or.overload2 more...]]``
+
+[heading Requirements]
+
+['Header: ][^asio/inline_or_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[section:overload1 inline_or (1 of 2 overloads)]
+
+
+Create an [link asio.reference.inline_or_executor `inline_or_executor`] object for an executor. 
+
+
+  template<
+      typename ``[link asio.reference.Executor1 Executor]``>
+  inline_or_executor< Executor > inline_or(
+      const Executor & ex,
+      constraint_t< is_executor< Executor >::value||execution::is_executor< Executor >::value >  = 0);
+
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[ex][An executor.]]
+
+]
+
+
+[heading Return Value]
+      
+An [link asio.reference.inline_or_executor `inline_or_executor`] constructed with the specified executor. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 inline_or (2 of 2 overloads)]
+
+
+Create an [link asio.reference.inline_or_executor `inline_or_executor`] object for an execution context. 
+
+
+  template<
+      typename ExecutionContext>
+  inline_or_executor< typename ExecutionContext::executor_type > inline_or(
+      ExecutionContext & ctx,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[ctx][An execution context, from which an executor will be obtained.]]
+
+]
+
+
+[heading Return Value]
+      
+An [link asio.reference.inline_or_executor `inline_or_executor`] constructed with the execution context's executor, obtained by performing `ctx.get_executor()`. 
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:inline_or_executor inline_or_executor]
+
+[indexterm1 asio.indexterm.inline_or_executor..inline_or_executor]
+
+
+Adapts an executor to add inline invocation of the submitted function. 
+
+
+  template<
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename Blocking = execution::blocking_t::always_t,
+      typename InlineExceptionHandling = execution::inline_exception_handling_t::propagate_t>
+  class inline_or_executor
+
+
+[heading Types]
+[table
+  [[Name][Description]]
+
+  [
+
+    [[link asio.reference.inline_or_executor.inner_executor_type [*inner_executor_type]]]
+    [The type of the underlying executor. ]
+  
+  ]
+
+]
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.inline_or_executor.context [*context]]]
+    [Obtain the underlying execution context. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.defer [*defer]]]
+    [Request the inline_or_executor to invoke the given function object. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.dispatch [*dispatch]]]
+    [Request the inline_or_executor to invoke the given function object. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.execute [*execute]]]
+    [Request the inline_or_executor to invoke the given function object. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.get_inner_executor [*get_inner_executor]]]
+    [Obtain the underlying executor. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.inline_or_executor [*inline_or_executor]] [constructor]]
+    [Default constructor. 
+     [hr]
+     Construct an inline_or_executor for the specified executor. 
+     [hr]
+     Copy constructor. 
+     [hr]
+     Converting constructor. 
+     [hr]
+     Move constructor. 
+     [hr]
+     Converting move constructor. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.on_work_finished [*on_work_finished]]]
+    [Inform the inline_or_executor that some work is no longer outstanding. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.on_work_started [*on_work_started]]]
+    [Inform the inline_or_executor that it has some outstanding work to do. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.operator_eq_ [*operator=]]]
+    [Assignment operator. 
+     [hr]
+     Converting assignment operator. 
+     [hr]
+     Move assignment operator. 
+     [hr]
+     Converting move assignment operator. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.post [*post]]]
+    [Request the inline_or_executor to invoke the given function object. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.prefer [*prefer]]]
+    [Forward a preference to the underlying executor. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.query [*query]]]
+    [Forward a query to the underlying executor. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.query__static [*query]] [static]]
+    [Query the current value of the blocking property. 
+     [hr]
+     Query the current value of the inline_exception_handling property. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.require [*require]]]
+    [Obtain an executor with the blocking.possibly property. 
+     [hr]
+     Obtain an executor with the blocking.always property. 
+     [hr]
+     Obtain an executor with the blocking.never property. 
+     [hr]
+     Obtain an executor with the inline_exception_handling.propagate property. 
+     [hr]
+     Obtain an executor with the inline_exception_handling.terminate property. 
+     [hr]
+     Forward a requirement to the underlying executor. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor._inline_or_executor [*~inline_or_executor]] [destructor]]
+    [Destructor. ]
+  ]
+  
+]
+
+[heading Friends]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.inline_or_executor.operator_not__eq_ [*operator!=]]]
+    [Compare two inline_or_executors for inequality. ]
+  ]
+  
+  [
+    [[link asio.reference.inline_or_executor.operator_eq__eq_ [*operator==]]]
+    [Compare two inline_or_executors for equality. ]
+  ]
+  
+]
+
+The `inline_or_executor` class template adapts an existing executor such that:
+
+
+* posted function objects (or when the `blocking` property is set to `blocking.never`) are submitted to the wrapped executor; and
+
+
+* dispatched function objects (or when `blocking` is `blocking.always` or `blocking.possibly`) are executed inline. 
+
+
+
+[heading Requirements]
+
+['Header: ][^asio/inline_or_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[section:context inline_or_executor::context]
+
+[indexterm2 asio.indexterm.inline_or_executor.context..context..inline_or_executor] 
+Obtain the underlying execution context. 
+
+
+  execution_context & context() const;
+
+
+
+[endsect]
+
+
+
+[section:defer inline_or_executor::defer]
+
+[indexterm2 asio.indexterm.inline_or_executor.defer..defer..inline_or_executor] 
+Request the [link asio.reference.inline_or_executor `inline_or_executor`] to invoke the given function object. 
+
+
+  template<
+      typename Function,
+      typename Allocator>
+  void defer(
+      Function && f,
+      const Allocator & a) const;
+
+
+This function is used to ask the executor to execute the given function object. The function object will never be executed inside this function. Instead, it will be scheduled by the underlying executor's defer function.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[f][The function object to be called. The executor will make a copy of the handler object as required. The function signature of the function object must be: 
+``
+  void function(); 
+``
+]]
+
+[[a][An allocator that may be used by the executor to allocate the internal storage needed for function invocation. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+
+[section:dispatch inline_or_executor::dispatch]
+
+[indexterm2 asio.indexterm.inline_or_executor.dispatch..dispatch..inline_or_executor] 
+Request the [link asio.reference.inline_or_executor `inline_or_executor`] to invoke the given function object. 
+
+
+  template<
+      typename Function,
+      typename Allocator>
+  void dispatch(
+      Function && f,
+      const Allocator & a) const;
+
+
+This function is used to ask the [link asio.reference.inline_or_executor `inline_or_executor`] to execute the given function object. The function object will be executed inside this function.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[f][The function object to be called. The executor will make a copy of the handler object as required. The function signature of the function object must be: 
+``
+  void function(); 
+``
+]]
+
+[[a][An allocator that may be used by the executor to allocate the internal storage needed for function invocation. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+
+[section:execute inline_or_executor::execute]
+
+[indexterm2 asio.indexterm.inline_or_executor.execute..execute..inline_or_executor] 
+Request the [link asio.reference.inline_or_executor `inline_or_executor`] to invoke the given function object. 
+
+
+  template<
+      typename Function>
+  constraint_t< traits::execute_member< const Executor &, Function >::is_valid, void > execute(
+      Function && f) const;
+
+
+This function is used to ask the [link asio.reference.inline_or_executor `inline_or_executor`] to execute the given function object. The function object will be executed inline or according to the properties of the underlying executor.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[f][The function object to be called. The executor will make a copy of the handler object as required. The function signature of the function object must be: 
+``
+  void function(); 
+``
+]]
+
+]
+
+
+
+
+[endsect]
+
+
+
+[section:get_inner_executor inline_or_executor::get_inner_executor]
+
+[indexterm2 asio.indexterm.inline_or_executor.get_inner_executor..get_inner_executor..inline_or_executor] 
+Obtain the underlying executor. 
+
+
+  inner_executor_type get_inner_executor() const;
+
+
+
+[endsect]
+
+
+[section:inline_or_executor inline_or_executor::inline_or_executor]
+
+[indexterm2 asio.indexterm.inline_or_executor.inline_or_executor..inline_or_executor..inline_or_executor] 
+Default constructor. 
+
+
+  ``[link asio.reference.inline_or_executor.inline_or_executor.overload1 inline_or_executor]``();
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.inline_or_executor.overload1 more...]]``
+
+
+Construct an [link asio.reference.inline_or_executor `inline_or_executor`] for the specified executor. 
+
+
+  template<
+      typename ``[link asio.reference.Executor1 Executor1]``>
+  explicit ``[link asio.reference.inline_or_executor.inline_or_executor.overload2 inline_or_executor]``(
+      const Executor1 & e,
+      constraint_t< conditional_t< !is_same< Executor1, inline_or_executor >::value, is_convertible< Executor1, Executor >, false_type >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.inline_or_executor.overload2 more...]]``
+
+
+Copy constructor. 
+
+
+  ``[link asio.reference.inline_or_executor.inline_or_executor.overload3 inline_or_executor]``(
+      const inline_or_executor & other);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.inline_or_executor.overload3 more...]]``
+
+
+Converting constructor. 
+
+
+  template<
+      class ``[link asio.reference.Executor1 OtherExecutor]``>
+  ``[link asio.reference.inline_or_executor.inline_or_executor.overload4 inline_or_executor]``(
+      const inline_or_executor< OtherExecutor > & other);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.inline_or_executor.overload4 more...]]``
+
+
+Move constructor. 
+
+
+  ``[link asio.reference.inline_or_executor.inline_or_executor.overload5 inline_or_executor]``(
+      inline_or_executor && other);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.inline_or_executor.overload5 more...]]``
+
+
+Converting move constructor. 
+
+
+  template<
+      class ``[link asio.reference.Executor1 OtherExecutor]``>
+  ``[link asio.reference.inline_or_executor.inline_or_executor.overload6 inline_or_executor]``(
+      inline_or_executor< OtherExecutor > && other);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.inline_or_executor.overload6 more...]]``
+
+
+[section:overload1 inline_or_executor::inline_or_executor (1 of 6 overloads)]
+
+
+Default constructor. 
+
+
+  inline_or_executor();
+
+
+This constructor is only valid if the underlying executor type is default constructible. 
+
+
+[endsect]
+
+
+
+[section:overload2 inline_or_executor::inline_or_executor (2 of 6 overloads)]
+
+
+Construct an [link asio.reference.inline_or_executor `inline_or_executor`] for the specified executor. 
+
+
+  template<
+      typename ``[link asio.reference.Executor1 Executor1]``>
+  inline_or_executor(
+      const Executor1 & e,
+      constraint_t< conditional_t< !is_same< Executor1, inline_or_executor >::value, is_convertible< Executor1, Executor >, false_type >::value >  = 0);
+
+
+
+[endsect]
+
+
+
+[section:overload3 inline_or_executor::inline_or_executor (3 of 6 overloads)]
+
+
+Copy constructor. 
+
+
+  inline_or_executor(
+      const inline_or_executor & other);
+
+
+
+[endsect]
+
+
+
+[section:overload4 inline_or_executor::inline_or_executor (4 of 6 overloads)]
+
+
+Converting constructor. 
+
+
+  template<
+      class ``[link asio.reference.Executor1 OtherExecutor]``>
+  inline_or_executor(
+      const inline_or_executor< OtherExecutor > & other);
+
+
+This constructor is only valid if the `OtherExecutor` type is convertible to `Executor`. 
+
+
+[endsect]
+
+
+
+[section:overload5 inline_or_executor::inline_or_executor (5 of 6 overloads)]
+
+
+Move constructor. 
+
+
+  inline_or_executor(
+      inline_or_executor && other);
+
+
+
+[endsect]
+
+
+
+[section:overload6 inline_or_executor::inline_or_executor (6 of 6 overloads)]
+
+
+Converting move constructor. 
+
+
+  template<
+      class ``[link asio.reference.Executor1 OtherExecutor]``>
+  inline_or_executor(
+      inline_or_executor< OtherExecutor > && other);
+
+
+This constructor is only valid if the `OtherExecutor` type is convertible to `Executor`. 
+
+
+[endsect]
+
+
+[endsect]
+
+
+[section:inner_executor_type inline_or_executor::inner_executor_type]
+
+[indexterm2 asio.indexterm.inline_or_executor.inner_executor_type..inner_executor_type..inline_or_executor] 
+The type of the underlying executor. 
+
+
+  typedef Executor inner_executor_type;
+
+
+
+[heading Requirements]
+
+['Header: ][^asio/inline_or_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[endsect]
+
+
+
+[section:on_work_finished inline_or_executor::on_work_finished]
+
+[indexterm2 asio.indexterm.inline_or_executor.on_work_finished..on_work_finished..inline_or_executor] 
+Inform the [link asio.reference.inline_or_executor `inline_or_executor`] that some work is no longer outstanding. 
+
+
+  void on_work_finished() const;
+
+
+The [link asio.reference.inline_or_executor `inline_or_executor`] delegates this call to its underlying executor. 
+
+
+[endsect]
+
+
+
+[section:on_work_started inline_or_executor::on_work_started]
+
+[indexterm2 asio.indexterm.inline_or_executor.on_work_started..on_work_started..inline_or_executor] 
+Inform the [link asio.reference.inline_or_executor `inline_or_executor`] that it has some outstanding work to do. 
+
+
+  void on_work_started() const;
+
+
+The [link asio.reference.inline_or_executor `inline_or_executor`] delegates this call to its underlying executor. 
+
+
+[endsect]
+
+
+
+[section:operator_not__eq_ inline_or_executor::operator!=]
+
+[indexterm2 asio.indexterm.inline_or_executor.operator_not__eq_..operator!=..inline_or_executor] 
+Compare two inline\_or\_executors for inequality. 
+
+
+  bool operator!=(
+      const inline_or_executor & a,
+      const inline_or_executor & b);
+
+
+Two inline\_or\_executors are equal if their underlying executors are equal. 
+
+[heading Requirements]
+
+['Header: ][^asio/inline_or_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[endsect]
+
+
+[section:operator_eq_ inline_or_executor::operator=]
+
+[indexterm2 asio.indexterm.inline_or_executor.operator_eq_..operator=..inline_or_executor] 
+Assignment operator. 
+
+
+  inline_or_executor & ``[link asio.reference.inline_or_executor.operator_eq_.overload1 operator=]``(
+      const inline_or_executor & other);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.operator_eq_.overload1 more...]]``
+
+
+Converting assignment operator. 
+
+
+  template<
+      class ``[link asio.reference.Executor1 OtherExecutor]``>
+  inline_or_executor & ``[link asio.reference.inline_or_executor.operator_eq_.overload2 operator=]``(
+      const inline_or_executor< OtherExecutor > & other);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.operator_eq_.overload2 more...]]``
+
+
+Move assignment operator. 
+
+
+  inline_or_executor & ``[link asio.reference.inline_or_executor.operator_eq_.overload3 operator=]``(
+      inline_or_executor && other);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.operator_eq_.overload3 more...]]``
+
+
+Converting move assignment operator. 
+
+
+  template<
+      class ``[link asio.reference.Executor1 OtherExecutor]``>
+  inline_or_executor & ``[link asio.reference.inline_or_executor.operator_eq_.overload4 operator=]``(
+      inline_or_executor< OtherExecutor > && other);
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.operator_eq_.overload4 more...]]``
+
+
+[section:overload1 inline_or_executor::operator= (1 of 4 overloads)]
+
+
+Assignment operator. 
+
+
+  inline_or_executor & operator=(
+      const inline_or_executor & other);
+
+
+
+[endsect]
+
+
+
+[section:overload2 inline_or_executor::operator= (2 of 4 overloads)]
+
+
+Converting assignment operator. 
+
+
+  template<
+      class ``[link asio.reference.Executor1 OtherExecutor]``>
+  inline_or_executor & operator=(
+      const inline_or_executor< OtherExecutor > & other);
+
+
+This assignment operator is only valid if the `OtherExecutor` type is convertible to `Executor`. 
+
+
+[endsect]
+
+
+
+[section:overload3 inline_or_executor::operator= (3 of 4 overloads)]
+
+
+Move assignment operator. 
+
+
+  inline_or_executor & operator=(
+      inline_or_executor && other);
+
+
+
+[endsect]
+
+
+
+[section:overload4 inline_or_executor::operator= (4 of 4 overloads)]
+
+
+Converting move assignment operator. 
+
+
+  template<
+      class ``[link asio.reference.Executor1 OtherExecutor]``>
+  inline_or_executor & operator=(
+      inline_or_executor< OtherExecutor > && other);
+
+
+This assignment operator is only valid if the `OtherExecutor` type is convertible to `Executor`. 
+
+
+[endsect]
+
+
+[endsect]
+
+
+[section:operator_eq__eq_ inline_or_executor::operator==]
+
+[indexterm2 asio.indexterm.inline_or_executor.operator_eq__eq_..operator==..inline_or_executor] 
+Compare two inline\_or\_executors for equality. 
+
+
+  bool operator==(
+      const inline_or_executor & a,
+      const inline_or_executor & b);
+
+
+Two inline\_or\_executors are equal if their underlying executors are equal. 
+
+[heading Requirements]
+
+['Header: ][^asio/inline_or_executor.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[endsect]
+
+
+
+[section:post inline_or_executor::post]
+
+[indexterm2 asio.indexterm.inline_or_executor.post..post..inline_or_executor] 
+Request the [link asio.reference.inline_or_executor `inline_or_executor`] to invoke the given function object. 
+
+
+  template<
+      typename Function,
+      typename Allocator>
+  void post(
+      Function && f,
+      const Allocator & a) const;
+
+
+This function is used to ask the executor to execute the given function object. The function object will never be executed inside this function. Instead, it will be scheduled by the underlying executor's post function.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[f][The function object to be called. The executor will make a copy of the handler object as required. The function signature of the function object must be: 
+``
+  void function(); 
+``
+]]
+
+[[a][An allocator that may be used by the executor to allocate the internal storage needed for function invocation. ]]
+
+]
+
+
+
+
+[endsect]
+
+
+
+[section:prefer inline_or_executor::prefer]
+
+[indexterm2 asio.indexterm.inline_or_executor.prefer..prefer..inline_or_executor] 
+Forward a preference to the underlying executor. 
+
+
+  template<
+      typename Property>
+  inline_or_executor< decay_t< prefer_result_t< const Executor &, Property > >, Blocking, InlineExceptionHandling > prefer(
+      const Property & p,
+      constraint_t< can_prefer< const Executor &, Property >::value >  = 0,
+      constraint_t< !is_convertible< Property, execution::blocking_t >::value >  = 0,
+      constraint_t< !is_convertible< Property, execution::inline_exception_handling_t >::value >  = 0) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.prefer `prefer`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex1 = ...;
+  auto ex2 = asio::prefer(ex1,
+      asio::execution::relationship.continuation); 
+
+
+
+
+
+[endsect]
+
+
+
+[section:query inline_or_executor::query]
+
+[indexterm2 asio.indexterm.inline_or_executor.query..query..inline_or_executor] 
+Forward a query to the underlying executor. 
+
+
+  template<
+      typename Property>
+  query_result_t< const Executor &, Property > query(
+      const Property & p,
+      constraint_t< can_query< const Executor &, Property >::value >  = 0,
+      constraint_t< !is_convertible< Property, execution::blocking_t >::value >  = 0,
+      constraint_t< !is_convertible< Property, execution::inline_exception_handling_t >::value >  = 0) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex = ...;
+  if (asio::query(ex, asio::execution::blocking)
+        == asio::execution::blocking.never)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+[section:query__static inline_or_executor::query]
+
+[indexterm2 asio.indexterm.inline_or_executor.query__static..query..inline_or_executor] 
+Query the current value of the `blocking` property. 
+
+
+  static constexpr execution::blocking_t ``[link asio.reference.inline_or_executor.query__static.overload1 query]``(
+      execution::blocking_t );
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.query__static.overload1 more...]]``
+
+
+Query the current value of the `inline_exception_handling` property. 
+
+
+  static constexpr execution::inline_exception_handling_t ``[link asio.reference.inline_or_executor.query__static.overload2 query]``(
+      execution::inline_exception_handling_t );
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.query__static.overload2 more...]]``
+
+
+[section:overload1 inline_or_executor::query (1 of 2 overloads)]
+
+
+Query the current value of the `blocking` property. 
+
+
+  static constexpr execution::blocking_t query(
+      execution::blocking_t );
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex = ...;
+  if (asio::query(ex, asio::execution::blocking)
+      == asio::execution::blocking.possibly)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 inline_or_executor::query (2 of 2 overloads)]
+
+
+Query the current value of the `inline_exception_handling` property. 
+
+
+  static constexpr execution::inline_exception_handling_t query(
+      execution::inline_exception_handling_t );
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex = ...;
+  if (asio::query(ex,
+        asio::execution::inline_exception_handling)
+      == asio::execution::inline_exception_handling.propagate)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:require inline_or_executor::require]
+
+[indexterm2 asio.indexterm.inline_or_executor.require..require..inline_or_executor] 
+Obtain an executor with the `blocking.possibly` property. 
+
+
+  inline_or_executor< Executor, execution::blocking_t::possibly_t, InlineExceptionHandling > ``[link asio.reference.inline_or_executor.require.overload1 require]``(
+      const execution::blocking_t::possibly_t & ) const;
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.require.overload1 more...]]``
+
+
+Obtain an executor with the `blocking.always` property. 
+
+
+  inline_or_executor< Executor, execution::blocking_t::always_t, InlineExceptionHandling > ``[link asio.reference.inline_or_executor.require.overload2 require]``(
+      const execution::blocking_t::always_t & ) const;
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.require.overload2 more...]]``
+
+
+Obtain an executor with the `blocking.never` property. 
+
+
+  inline_or_executor< Executor, execution::blocking_t::never_t, InlineExceptionHandling > ``[link asio.reference.inline_or_executor.require.overload3 require]``(
+      const execution::blocking_t::never_t & ) const;
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.require.overload3 more...]]``
+
+
+Obtain an executor with the `inline_exception_handling.propagate` property. 
+
+
+  inline_or_executor< Executor, Blocking, execution::inline_exception_handling_t::propagate_t > ``[link asio.reference.inline_or_executor.require.overload4 require]``(
+      const execution::inline_exception_handling_t::propagate_t & ) const;
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.require.overload4 more...]]``
+
+
+Obtain an executor with the `inline_exception_handling.terminate` property. 
+
+
+  inline_or_executor< Executor, Blocking, execution::inline_exception_handling_t::terminate_t > ``[link asio.reference.inline_or_executor.require.overload5 require]``(
+      const execution::inline_exception_handling_t::terminate_t & ) const;
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.require.overload5 more...]]``
+
+
+Forward a requirement to the underlying executor. 
+
+
+  template<
+      typename Property>
+  inline_or_executor< decay_t< require_result_t< const Executor &, Property > >, Blocking, InlineExceptionHandling > ``[link asio.reference.inline_or_executor.require.overload6 require]``(
+      const Property & p,
+      constraint_t< can_require< const Executor &, Property >::value >  = 0,
+      constraint_t< !is_convertible< Property, execution::blocking_t >::value >  = 0,
+      constraint_t< !is_convertible< Property, execution::inline_exception_handling_t >::value >  = 0) const;
+  ``  [''''&raquo;''' [link asio.reference.inline_or_executor.require.overload6 more...]]``
+
+
+[section:overload1 inline_or_executor::require (1 of 6 overloads)]
+
+
+Obtain an executor with the `blocking.possibly` property. 
+
+
+  inline_or_executor< Executor, execution::blocking_t::possibly_t, InlineExceptionHandling > require(
+      const execution::blocking_t::possibly_t & ) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.require `require`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex = ...;
+  auto ex2 = asio::require(ex1,
+      asio::execution::blocking.possibly); 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 inline_or_executor::require (2 of 6 overloads)]
+
+
+Obtain an executor with the `blocking.always` property. 
+
+
+  inline_or_executor< Executor, execution::blocking_t::always_t, InlineExceptionHandling > require(
+      const execution::blocking_t::always_t & ) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.require `require`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex = ...;
+  auto ex2 = asio::require(ex1,
+      asio::execution::blocking.always); 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 inline_or_executor::require (3 of 6 overloads)]
+
+
+Obtain an executor with the `blocking.never` property. 
+
+
+  inline_or_executor< Executor, execution::blocking_t::never_t, InlineExceptionHandling > require(
+      const execution::blocking_t::never_t & ) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.require `require`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex = ...;
+  auto ex2 = asio::require(ex1,
+      asio::execution::blocking.never); 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 inline_or_executor::require (4 of 6 overloads)]
+
+
+Obtain an executor with the `inline_exception_handling.propagate` property. 
+
+
+  inline_or_executor< Executor, Blocking, execution::inline_exception_handling_t::propagate_t > require(
+      const execution::inline_exception_handling_t::propagate_t & ) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.require `require`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex = ...;
+  auto ex2 = asio::require(ex1,
+      asio::execution::inline_exception_handling.propagate); 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload5 inline_or_executor::require (5 of 6 overloads)]
+
+
+Obtain an executor with the `inline_exception_handling.terminate` property. 
+
+
+  inline_or_executor< Executor, Blocking, execution::inline_exception_handling_t::terminate_t > require(
+      const execution::inline_exception_handling_t::terminate_t & ) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.require `require`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex = ...;
+  auto ex2 = asio::require(ex1,
+      asio::execution::inline_exception_handling.terminate); 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload6 inline_or_executor::require (6 of 6 overloads)]
+
+
+Forward a requirement to the underlying executor. 
+
+
+  template<
+      typename Property>
+  inline_or_executor< decay_t< require_result_t< const Executor &, Property > >, Blocking, InlineExceptionHandling > require(
+      const Property & p,
+      constraint_t< can_require< const Executor &, Property >::value >  = 0,
+      constraint_t< !is_convertible< Property, execution::blocking_t >::value >  = 0,
+      constraint_t< !is_convertible< Property, execution::inline_exception_handling_t >::value >  = 0) const;
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.require `require`] customisation point.
+
+For example: 
+
+  asio::inline_or_executor<my_executor_type> ex1 = ...;
+  auto ex2 = asio::require(ex1,
+      asio::execution::relationship.continuation); 
+
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+
+[section:_inline_or_executor inline_or_executor::~inline_or_executor]
+
+[indexterm2 asio.indexterm.inline_or_executor._inline_or_executor..~inline_or_executor..inline_or_executor] 
+Destructor. 
+
+
+  ~inline_or_executor();
+
+
+
+[endsect]
+
+
+
+[endsect]
+
 [section:invalid_service_owner invalid_service_owner]
 
 [indexterm1 asio.indexterm.invalid_service_owner..invalid_service_owner]
@@ -112833,6 +116397,8 @@ Executor used to submit functions to an [link asio.reference.io_context `io_cont
   [
     [[link asio.reference.io_context__basic_executor_type.query__static [*query]] [static]]
     [Query the current value of the mapping property. 
+     [hr]
+     Query the current value of the inline_exception_handling property. 
      [hr]
      Query the current value of the outstanding_work property. ]
   ]
@@ -113773,6 +117339,8 @@ Executor implementation type used to submit functions to an [link asio.reference
     [[link asio.reference.io_context__basic_executor_type.query__static [*query]] [static]]
     [Query the current value of the mapping property. 
      [hr]
+     Query the current value of the inline_exception_handling property. 
+     [hr]
      Query the current value of the outstanding_work property. ]
   ]
   
@@ -114346,15 +117914,23 @@ Query the current value of the `mapping` property.
   ``  [''''&raquo;''' [link asio.reference.io_context__basic_executor_type.query__static.overload1 more...]]``
 
 
-Query the current value of the `outstanding_work` property. 
+Query the current value of the `inline_exception_handling` property. 
 
 
-  static constexpr execution::outstanding_work_t ``[link asio.reference.io_context__basic_executor_type.query__static.overload2 query]``(
-      execution::outstanding_work_t );
+  static constexpr execution::inline_exception_handling_t ``[link asio.reference.io_context__basic_executor_type.query__static.overload2 query]``(
+      execution::inline_exception_handling_t );
   ``  [''''&raquo;''' [link asio.reference.io_context__basic_executor_type.query__static.overload2 more...]]``
 
 
-[section:overload1 io_context::basic_executor_type::query (1 of 2 overloads)]
+Query the current value of the `outstanding_work` property. 
+
+
+  static constexpr execution::outstanding_work_t ``[link asio.reference.io_context__basic_executor_type.query__static.overload3 query]``(
+      execution::outstanding_work_t );
+  ``  [''''&raquo;''' [link asio.reference.io_context__basic_executor_type.query__static.overload3 more...]]``
+
+
+[section:overload1 io_context::basic_executor_type::query (1 of 3 overloads)]
 
 
 Query the current value of the `mapping` property. 
@@ -114381,7 +117957,35 @@ For example:
 
 
 
-[section:overload2 io_context::basic_executor_type::query (2 of 2 overloads)]
+[section:overload2 io_context::basic_executor_type::query (2 of 3 overloads)]
+
+
+Query the current value of the `inline_exception_handling` property. 
+
+
+  static constexpr execution::inline_exception_handling_t query(
+      execution::inline_exception_handling_t );
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  auto ex = my_io_context.get_executor();
+  if (asio::query(ex,
+        asio::execution::inline_exception_handling)
+      == asio::execution::inline_exception_handling.capture)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 io_context::basic_executor_type::query (3 of 3 overloads)]
 
 
 Query the current value of the `outstanding_work` property. 
@@ -139344,6 +142948,101 @@ Constructor that specifies associated executor.
 
 [endsect]
 
+[section:partial_redirect_disposition partial_redirect_disposition]
+
+[indexterm1 asio.indexterm.partial_redirect_disposition..partial_redirect_disposition]
+
+
+A function object type that adapts a [link asio.overview.model.completion_tokens completion token] to capture any disposition produced by an asynchronous operation to a variable. 
+
+
+  template<
+      typename ``[link asio.reference.Disposition Disposition]``>
+  class partial_redirect_disposition
+
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.partial_redirect_disposition.operator_lp__rp_ [*operator()]]]
+    [Adapt a completion token to specify that the completion handler should capture disposition values to a variable. ]
+  ]
+  
+  [
+    [[link asio.reference.partial_redirect_disposition.partial_redirect_disposition [*partial_redirect_disposition]] [constructor]]
+    [Constructor that specifies the variable used to capture disposition values. ]
+  ]
+  
+]
+
+[heading Data Members]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.partial_redirect_disposition.d_ [*d_]]]
+    []
+  ]
+
+]
+
+May also be used directly as a completion token, in which case it adapts the asynchronous operation's default completion token (or [link asio.reference.deferred `deferred`] if no default is available). 
+
+[heading Requirements]
+
+['Header: ][^asio/redirect_disposition.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[section:d_ partial_redirect_disposition::d_]
+
+[indexterm2 asio.indexterm.partial_redirect_disposition.d_..d_..partial_redirect_disposition] 
+
+  Disposition & d_;
+
+
+
+[endsect]
+
+
+
+[section:operator_lp__rp_ partial_redirect_disposition::operator()]
+
+[indexterm2 asio.indexterm.partial_redirect_disposition.operator_lp__rp_..operator()..partial_redirect_disposition] 
+Adapt a [link asio.overview.model.completion_tokens completion token] to specify that the completion handler should capture disposition values to a variable. 
+
+
+  template<
+      typename CompletionToken>
+  constexpr redirect_disposition_t< decay_t< CompletionToken >, Disposition > operator()(
+      CompletionToken && completion_token) const;
+
+
+
+[endsect]
+
+
+
+[section:partial_redirect_disposition partial_redirect_disposition::partial_redirect_disposition]
+
+[indexterm2 asio.indexterm.partial_redirect_disposition.partial_redirect_disposition..partial_redirect_disposition..partial_redirect_disposition] 
+Constructor that specifies the variable used to capture disposition values. 
+
+
+  partial_redirect_disposition(
+      Disposition & d);
+
+
+
+[endsect]
+
+
+
+[endsect]
+
 [section:partial_redirect_error partial_redirect_error]
 
 [indexterm1 asio.indexterm.partial_redirect_error..partial_redirect_error]
@@ -144747,9 +148446,9 @@ Synchronous `read_some` and `write_some` operations are thread safe with respect
 Submits a completion token or function object for execution. 
 
   template<
-      typename ``[link asio.reference.NullaryToken NullaryToken]``>
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = deferred_t>
   auto ``[link asio.reference.post.overload1 post]``(
-      NullaryToken && token);
+      NullaryToken && token = deferred_t());
   ``  [''''&raquo;''' [link asio.reference.post.overload1 more...]]``
 
   template<
@@ -144770,6 +148469,62 @@ Submits a completion token or function object for execution.
       constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
   ``  [''''&raquo;''' [link asio.reference.post.overload3 more...]]``
 
+Submits a function to be run on a specified target executor, and after completion submits the completion handler. 
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<Executor>>
+  auto ``[link asio.reference.post.overload4 post]``(
+      Function && function,
+      const Executor & ex,
+      NullaryToken && token = default_completion_token_t< Executor >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.post.overload4 more...]]``
+
+Submits a function to be run on a specified target executor, and passes the result to a completion handler. 
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename CompletionToken = default_completion_token_t<Executor>>
+  auto ``[link asio.reference.post.overload5 post]``(
+      Function && function,
+      const Executor & ex,
+      CompletionToken && token = default_completion_token_t< Executor >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.post.overload5 more...]]``
+
+Submits a function to be run on a specified execution context, and after completion submits the completion handler. 
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto ``[link asio.reference.post.overload6 post]``(
+      Function && function,
+      ExecutionContext & ctx,
+      NullaryToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.post.overload6 more...]]``
+
+Submits a function to be run on a specified execution context, and passes the result to a completion handler. 
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename CompletionToken = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto ``[link asio.reference.post.overload7 post]``(
+      Function && function,
+      ExecutionContext & ctx,
+      CompletionToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+  ``  [''''&raquo;''' [link asio.reference.post.overload7 more...]]``
+
 [heading Requirements]
 
 ['Header: ][^asio/post.hpp]
@@ -144777,16 +148532,16 @@ Submits a completion token or function object for execution.
 ['Convenience header: ][^asio.hpp]
 
 
-[section:overload1 post (1 of 3 overloads)]
+[section:overload1 post (1 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
 
 
   template<
-      typename ``[link asio.reference.NullaryToken NullaryToken]``>
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = deferred_t>
   auto post(
-      NullaryToken && token);
+      NullaryToken && token = deferred_t());
 
 
 This function submits an object for execution using the object's associated executor. The function object is queued for execution, and is never called from the current thread prior to returning from `post()`.
@@ -144829,7 +148584,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated executor object `ex` of type `Ex` by performing 
 
-  auto ex = get_associated_executor(handler); 
+  auto ex = get_associated_executor(completion_handler); 
 
 
 
@@ -144837,7 +148592,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated allocator object `alloc` by performing 
 
-  auto alloc = get_associated_allocator(handler); 
+  auto alloc = get_associated_allocator(completion_handler); 
 
 
 
@@ -144881,7 +148636,7 @@ The function call operator of `Init:`
 
 
 
-[section:overload2 post (2 of 3 overloads)]
+[section:overload2 post (2 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
@@ -144943,7 +148698,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
 
-  auto ex1 = get_associated_executor(handler, ex); 
+  auto ex1 = get_associated_executor(completion_handler, ex); 
 
 
 
@@ -144951,7 +148706,7 @@ The function call operator of `Init:`
 
 * Obtains the handler's associated allocator object `alloc` by performing 
 
-  auto alloc = get_associated_allocator(handler); 
+  auto alloc = get_associated_allocator(completion_handler); 
 
 
 
@@ -144976,7 +148731,7 @@ The function call operator of `Init:`
 
 
 
-* If `execution::is_executor<Ex>::value` is true, performs 
+* If `execution::is_executor<Executor>::value` is true, performs 
 
   prefer(
      require(ex, execution::blocking.never),
@@ -144988,7 +148743,7 @@ The function call operator of `Init:`
 
 
 
-* If `execution::is_executor<Ex>::value` is false, performs 
+* If `execution::is_executor<Executor>::value` is false, performs 
 
   ex.post(std::move(f), alloc); 
 
@@ -145012,7 +148767,7 @@ The function call operator of `Init:`
 
 
 
-[section:overload3 post (3 of 3 overloads)]
+[section:overload3 post (3 of 7 overloads)]
 
 
 Submits a completion token or function object for execution. 
@@ -145054,6 +148809,464 @@ Submits a completion token or function object for execution.
 
 
   void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload4 post (4 of 7 overloads)]
+
+
+Submits a function to be run on a specified target executor, and after completion submits the completion handler. 
+
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<Executor>>
+  auto post(
+      Function && function,
+      const Executor & ex,
+      NullaryToken && token = default_completion_token_t< Executor >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+
+
+This function submits a function object for execution on the specified executor. The function object is queued for execution, and is never called from the current thread prior to returning from `post()`. After the submitted function completes, the completion handler is dispatched to run on its associated executor.
+
+The use of `post()`, rather than [link asio.reference.defer `defer`], indicates the caller's preference that the function object be eagerly queued for execution.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ex][The target executor.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+This function returns `async_initiate<NullaryToken, void()>(Init{ex}, token, forward<Function>(function))`, where `Init` is a function object type defined as:
+
+
+
+  class Init
+  {
+  public:
+    using executor_type = Executor;
+    explicit Init(const Executor& ex) : ex_(ex) {}
+    executor_type get_executor() const noexcept { return ex_; }
+    template <typename CompletionHandler>
+      void operator()(CompletionHandler&& completion_handler,
+        Function&& function) const;
+  private:
+    Executor ex_; // exposition only
+  }; 
+
+
+
+
+The function call operator of `Init:` 
+
+
+* Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
+
+  auto ex1 = get_associated_executor(completion_handler, ex); 
+
+
+
+
+
+* Obtains the handler's associated allocator object `alloc` by performing 
+
+  auto alloc = get_associated_allocator(completion_handler); 
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is true, constructs a function object wrapper `f` with a member `executor_` that is initialised with `prefer(ex1, execution::outstanding_work.tracked)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  prefer(executor_, execution::allocator(a)).execute(std::move(handler_));
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is false, constructs a function object wrapper `f` with a member `work_` that is initialised with `make_work_guard(ex1)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  work_.get_executor().dispatch(std::move(handler_), a);
+  work_.reset(); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is true, performs 
+
+  prefer(
+     require(ex, execution::blocking.never),
+     execution::relationship.fork,
+     execution::allocator(alloc)
+   ).execute(std::move(f)); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is false, performs 
+
+  ex.post(std::move(f), alloc); 
+
+
+
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Example]
+  
+This `post` overload may be used to submit long running work to a thread pool and, once complete, continue execution on an associated completion executor, such as a coroutine's associated executor: 
+
+  asio::awaitable<void> my_coroutine()
+  {
+     // ...
+
+     co_await asio::post(
+         []{
+           perform_expensive_computation();
+         },
+         my_thread_pool);
+
+     // handle result on the coroutine's associated executor
+  } 
+
+
+
+
+
+[heading Completion Signature]
+  
+
+
+  void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload5 post (5 of 7 overloads)]
+
+
+Submits a function to be run on a specified target executor, and passes the result to a completion handler. 
+
+
+  template<
+      typename Function,
+      typename ``[link asio.reference.Executor1 Executor]``,
+      typename CompletionToken = default_completion_token_t<Executor>>
+  auto post(
+      Function && function,
+      const Executor & ex,
+      CompletionToken && token = default_completion_token_t< Executor >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t<(execution::is_executor< Executor >::value &&can_require< Executor, execution::blocking_t::never_t >::value)||is_executor< Executor >::value >  = 0);
+
+
+This function submits a function object for execution on the specified executor. The function object is queued for execution, and is never called from the current thread prior to returning from `post()`. After the submitted function completes, the completion handler is dispatched along with the function's result, to run on its associated executor.
+
+The use of `post()`, rather than [link asio.reference.defer `defer`], indicates the caller's preference that the function object be eagerly queued for execution.
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ex][The target executor.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(decay_t<result_of_t<decay_t<Function>()>>); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+This function returns `async_initiate<CompletionToken, void()>(Init{ex}, token)`, where `Init` is a function object type defined as:
+
+
+
+  class Init
+  {
+  public:
+    using executor_type = Executor;
+    explicit Init(const Executor& ex) : ex_(ex) {}
+    executor_type get_executor() const noexcept { return ex_; }
+    template <typename CompletionHandler>
+      void operator()(CompletionHandler&& completion_handler,
+        Function&& function) const;
+  private:
+    Executor ex_; // exposition only
+  }; 
+
+
+
+
+The function call operator of `Init:` 
+
+
+* Obtains the handler's associated executor object `ex1` of type `Ex1` by performing 
+
+  auto ex1 = get_associated_executor(completion_handler, ex); 
+
+
+
+
+
+* Obtains the handler's associated allocator object `alloc` by performing 
+
+  auto alloc = get_associated_allocator(completion_handler); 
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is true, constructs a function object wrapper `f` with a member `executor_` that is initialised with `prefer(ex1, execution::outstanding_work.tracked)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  auto result = std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  prefer(executor_, execution::allocator(a)).execute(
+      std::bind(std::move(handler_), std::move(result)));
+
+
+
+
+
+* If `execution::is_executor<Ex1>::value` is false, constructs a function object wrapper `f` with a member `work_` that is initialised with `make_work_guard(ex1)`, a member `function_` that is a decay-copy of `function`, a member `handler_` that is a decay-copy of `completion_handler`, and a function call operator that performs: 
+
+  auto result = std::move(function_)();
+  auto a = get_associated_allocator(handler_);
+  work_.get_executor().dispatch(
+      std::bind(std::move(handler_), std::move(result)), a);
+  work_.reset(); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is true, performs 
+
+  prefer(
+     require(ex, execution::blocking.never),
+     execution::relationship.fork,
+     execution::allocator(alloc)
+   ).execute(std::move(f)); 
+
+
+
+
+
+* If `execution::is_executor<Executor>::value` is false, performs 
+
+  ex.post(std::move(f), alloc); 
+
+
+
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Example]
+  
+This `post` overload may be used to submit long running work to a thread pool and, once complete, continue execution on an associated completion executor, such as a coroutine's associated executor: 
+
+  asio::awaitable<void> my_coroutine()
+  {
+     // ...
+
+     int result = co_await asio::post(
+         []{
+           return perform_expensive_computation();
+         },
+         my_thread_pool);
+
+     // handle result on the coroutine's associated executor
+  } 
+
+
+
+
+
+[heading Completion Signature]
+  
+
+
+  void(decay_t<result_of_t<decay_t<Function>()>>) 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload6 post (6 of 7 overloads)]
+
+
+Submits a function to be run on a specified execution context, and after completion submits the completion handler. 
+
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename ``[link asio.reference.NullaryToken NullaryToken]`` = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto post(
+      Function && function,
+      ExecutionContext & ctx,
+      NullaryToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ctx][An execution context, from which the target executor is obtained.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+`post(forward<Function>(function), ctx.get_executor(), forward<NullaryToken>(token))`.
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Completion Signature]
+  
+
+
+  void() 
+
+
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload7 post (7 of 7 overloads)]
+
+
+Submits a function to be run on a specified execution context, and passes the result to a completion handler. 
+
+
+  template<
+      typename Function,
+      typename ExecutionContext,
+      typename CompletionToken = default_completion_token_t<typename ExecutionContext::executor_type>>
+  auto post(
+      Function && function,
+      ExecutionContext & ctx,
+      CompletionToken && token = default_completion_token_t< typename ExecutionContext::executor_type >(),
+      constraint_t< !is_void< result_of_t< decay_t< Function >()> >::value >  = 0,
+      constraint_t< is_convertible< ExecutionContext &, execution_context & >::value >  = 0);
+
+
+
+[heading Parameters]
+    
+
+[variablelist
+  
+[[function][A nullary function to be executed on the target executor.]]
+
+[[ctx][An execution context, from which the target executor is obtained.]]
+
+[[token][The [link asio.overview.model.completion_tokens completion token] that will be used to produce a completion handler. The function signature of the completion handler must be: 
+``
+  void handler(); 
+``
+]]
+
+]
+
+
+[heading Return Value]
+      
+`post(forward<Function>(function), ctx.get_executor(), forward<CompletionToken>(token))`.
+
+
+[heading Remarks]
+      
+If the function object throws an exception, that exception is allowed to propagate to the target executor. The behaviour in this case is dependent on the executor. For example, [link asio.reference.io_context `io_context`] will allow the exception to propagate to the caller that runs the `io_context`, whereas [link asio.reference.thread_pool `thread_pool`] will call `std::terminate`.
+
+
+[heading Completion Signature]
+  
+
+
+  void(decay_t<result_of_t<decay_t<Function>()>>) 
 
 
 
@@ -150191,7 +154404,7 @@ An allocator that caches memory blocks in thread-local storage for reuse.
   
 ]
 
-The @recycling\_allocator uses a simple strategy where a limited number of small memory blocks are cached in thread-local storage, if the current thread is running an `io_context` or is part of a `thread_pool`. 
+The `recycling_allocator` uses a simple strategy where a limited number of small memory blocks are cached in thread-local storage, if the current thread is running an `io_context` or is part of a `thread_pool`. 
 
 [heading Requirements]
 
@@ -150431,7 +154644,7 @@ The rebound `allocator` type.
   
 ]
 
-The @recycling\_allocator uses a simple strategy where a limited number of small memory blocks are cached in thread-local storage, if the current thread is running an `io_context` or is part of a `thread_pool`. 
+The `recycling_allocator` uses a simple strategy where a limited number of small memory blocks are cached in thread-local storage, if the current thread is running an `io_context` or is part of a `thread_pool`. 
 
 
 [heading Requirements]
@@ -150502,7 +154715,7 @@ A proto-allocator that caches memory blocks in thread-local storage for reuse.
   
 ]
 
-The @recycling\_allocator uses a simple strategy where a limited number of small memory blocks are cached in thread-local storage, if the current thread is running an `io_context` or is part of a `thread_pool`. 
+The `recycling_allocator` uses a simple strategy where a limited number of small memory blocks are cached in thread-local storage, if the current thread is running an `io_context` or is part of a `thread_pool`. 
 
 [heading Requirements]
 
@@ -150710,7 +154923,7 @@ The rebound `allocator` type.
   
 ]
 
-The @recycling\_allocator uses a simple strategy where a limited number of small memory blocks are cached in thread-local storage, if the current thread is running an `io_context` or is part of a `thread_pool`. 
+The `recycling_allocator` uses a simple strategy where a limited number of small memory blocks are cached in thread-local storage, if the current thread is running an `io_context` or is part of a `thread_pool`. 
 
 
 [heading Requirements]
@@ -150718,6 +154931,180 @@ The @recycling\_allocator uses a simple strategy where a limited number of small
 ['Header: ][^asio/recycling_allocator.hpp]
 
 ['Convenience header: ][^asio.hpp]
+
+
+[endsect]
+
+
+
+[endsect]
+
+[section:redirect_disposition redirect_disposition]
+
+[indexterm1 asio.indexterm.redirect_disposition..redirect_disposition]
+
+Create a partial completion token adapter that captures disposition values to a variable. 
+
+  template<
+      typename ``[link asio.reference.Disposition Disposition]``>
+  partial_redirect_disposition< Disposition > ``[link asio.reference.redirect_disposition.overload1 redirect_disposition]``(
+      Disposition & d);
+  ``  [''''&raquo;''' [link asio.reference.redirect_disposition.overload1 more...]]``
+
+Adapt a [link asio.overview.model.completion_tokens completion token] to capture disposition values to a variable. 
+
+  template<
+      typename CompletionToken,
+      typename ``[link asio.reference.Disposition Disposition]``>
+  redirect_disposition_t< decay_t< CompletionToken >, Disposition > ``[link asio.reference.redirect_disposition.overload2 redirect_disposition]``(
+      CompletionToken && completion_token,
+      Disposition & d);
+  ``  [''''&raquo;''' [link asio.reference.redirect_disposition.overload2 more...]]``
+
+[heading Requirements]
+
+['Header: ][^asio/redirect_disposition.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[section:overload1 redirect_disposition (1 of 2 overloads)]
+
+
+Create a partial completion token adapter that captures disposition values to a variable. 
+
+
+  template<
+      typename ``[link asio.reference.Disposition Disposition]``>
+  partial_redirect_disposition< Disposition > redirect_disposition(
+      Disposition & d);
+
+
+
+[heading Remarks]
+      
+When redirecting to a variable of type `std::exception_ptr`, other disposition types will be automatically converted to `std::exception_ptr`. 
+
+
+
+
+[endsect]
+
+
+
+[section:overload2 redirect_disposition (2 of 2 overloads)]
+
+
+Adapt a [link asio.overview.model.completion_tokens completion token] to capture disposition values to a variable. 
+
+
+  template<
+      typename CompletionToken,
+      typename ``[link asio.reference.Disposition Disposition]``>
+  redirect_disposition_t< decay_t< CompletionToken >, Disposition > redirect_disposition(
+      CompletionToken && completion_token,
+      Disposition & d);
+
+
+
+[heading Remarks]
+      
+When redirecting to a variable of type `std::exception_ptr`, other disposition types will be automatically converted to `std::exception_ptr`. 
+
+
+
+
+[endsect]
+
+
+[endsect]
+
+[section:redirect_disposition_t redirect_disposition_t]
+
+[indexterm1 asio.indexterm.redirect_disposition_t..redirect_disposition_t]
+
+
+A [link asio.overview.model.completion_tokens completion token] adapter used to specify that the disposition produced by an asynchronous operation is captured to a variable. 
+
+
+  template<
+      typename CompletionToken,
+      typename ``[link asio.reference.Disposition Disposition]``>
+  class redirect_disposition_t
+
+
+[heading Member Functions]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.redirect_disposition_t.redirect_disposition_t [*redirect_disposition_t]] [constructor]]
+    [Constructor. ]
+  ]
+  
+]
+
+[heading Data Members]
+[table
+  [[Name][Description]]
+
+  [
+    [[link asio.reference.redirect_disposition_t.d_ [*d_]]]
+    []
+  ]
+
+  [
+    [[link asio.reference.redirect_disposition_t.token_ [*token_]]]
+    []
+  ]
+
+]
+
+The [link asio.reference.redirect_disposition_t `redirect_disposition_t`] class is used to indicate that any disposition produced by an asynchronous operation is captured to a specified variable. 
+
+[heading Requirements]
+
+['Header: ][^asio/redirect_disposition.hpp]
+
+['Convenience header: ][^asio.hpp]
+
+
+[section:d_ redirect_disposition_t::d_]
+
+[indexterm2 asio.indexterm.redirect_disposition_t.d_..d_..redirect_disposition_t] 
+
+  Disposition & d_;
+
+
+
+[endsect]
+
+
+
+[section:redirect_disposition_t redirect_disposition_t::redirect_disposition_t]
+
+[indexterm2 asio.indexterm.redirect_disposition_t.redirect_disposition_t..redirect_disposition_t..redirect_disposition_t] 
+Constructor. 
+
+
+  template<
+      typename T>
+  redirect_disposition_t(
+      T && completion_token,
+      Disposition & d);
+
+
+
+[endsect]
+
+
+
+[section:token_ redirect_disposition_t::token_]
+
+[indexterm2 asio.indexterm.redirect_disposition_t.token_..token_..redirect_disposition_t] 
+
+  CompletionToken token_;
+
 
 
 [endsect]
@@ -160911,7 +165298,7 @@ Request the strand to invoke the given function object.
       const Allocator & a) const;
 
 
-This function is used to ask the executor to execute the given function object. The function object will never be executed inside this function. Instead, it will be scheduled by the underlying executor's defer function.
+This function is used to ask the executor to execute the given function object. The function object will never be executed inside this function. Instead, it will be scheduled by the underlying executor's post function.
 
 
 [heading Parameters]
@@ -161822,6 +166209,8 @@ The executor type associated with the context.
     [[link asio.reference.basic_system_executor.query__static [*query]] [static]]
     [Query the current value of the mapping property. 
      [hr]
+     Query the current value of the inline_exception_handling property. 
+     [hr]
      Query the current value of the context property. 
      [hr]
      Query the current value of the blocking property. 
@@ -162168,6 +166557,8 @@ An executor that uses arbitrary threads.
   [
     [[link asio.reference.basic_system_executor.query__static [*query]] [static]]
     [Query the current value of the mapping property. 
+     [hr]
+     Query the current value of the inline_exception_handling property. 
      [hr]
      Query the current value of the context property. 
      [hr]
@@ -163296,6 +167687,8 @@ Executor used to submit functions to a thread pool.
     [[link asio.reference.thread_pool__basic_executor_type.query__static [*query]] [static]]
     [Query the current value of the mapping property. 
      [hr]
+     Query the current value of the inline_exception_handling property. 
+     [hr]
      Query the current value of the outstanding_work property. ]
   ]
   
@@ -163885,6 +168278,8 @@ Executor implementation type used to submit functions to a thread pool.
   [
     [[link asio.reference.thread_pool__basic_executor_type.query__static [*query]] [static]]
     [Query the current value of the mapping property. 
+     [hr]
+     Query the current value of the inline_exception_handling property. 
      [hr]
      Query the current value of the outstanding_work property. ]
   ]
@@ -164495,15 +168890,23 @@ Query the current value of the `mapping` property.
   ``  [''''&raquo;''' [link asio.reference.thread_pool__basic_executor_type.query__static.overload1 more...]]``
 
 
-Query the current value of the `outstanding_work` property. 
+Query the current value of the `inline_exception_handling` property. 
 
 
-  static constexpr execution::outstanding_work_t ``[link asio.reference.thread_pool__basic_executor_type.query__static.overload2 query]``(
-      execution::outstanding_work_t );
+  static constexpr execution::inline_exception_handling_t ``[link asio.reference.thread_pool__basic_executor_type.query__static.overload2 query]``(
+      execution::inline_exception_handling_t );
   ``  [''''&raquo;''' [link asio.reference.thread_pool__basic_executor_type.query__static.overload2 more...]]``
 
 
-[section:overload1 thread_pool::basic_executor_type::query (1 of 2 overloads)]
+Query the current value of the `outstanding_work` property. 
+
+
+  static constexpr execution::outstanding_work_t ``[link asio.reference.thread_pool__basic_executor_type.query__static.overload3 query]``(
+      execution::outstanding_work_t );
+  ``  [''''&raquo;''' [link asio.reference.thread_pool__basic_executor_type.query__static.overload3 more...]]``
+
+
+[section:overload1 thread_pool::basic_executor_type::query (1 of 3 overloads)]
 
 
 Query the current value of the `mapping` property. 
@@ -164530,7 +168933,35 @@ For example:
 
 
 
-[section:overload2 thread_pool::basic_executor_type::query (2 of 2 overloads)]
+[section:overload2 thread_pool::basic_executor_type::query (2 of 3 overloads)]
+
+
+Query the current value of the `inline_exception_handling` property. 
+
+
+  static constexpr execution::inline_exception_handling_t query(
+      execution::inline_exception_handling_t );
+
+
+Do not call this function directly. It is intended for use with the [link asio.reference.query `query`] customisation point.
+
+For example: 
+
+  auto ex = my_thread_pool.get_executor();
+  if (asio::query(ex,
+        asio::execution::inline_exception_handling)
+      == asio::execution::inline_exception_handling.terminate)
+    ... 
+
+
+
+
+
+[endsect]
+
+
+
+[section:overload3 thread_pool::basic_executor_type::query (3 of 3 overloads)]
 
 
 Query the current value of the `outstanding_work` property. 
